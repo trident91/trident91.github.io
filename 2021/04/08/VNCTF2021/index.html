@@ -101,12 +101,6 @@
             </li>
             
             <li class="menu-item">
-                <a href="/about.html">
-                    About
-                </a>
-            </li>
-            
-            <li class="menu-item">
                 <a href="/tags">
                     Tags
                 </a>
@@ -115,12 +109,6 @@
             <li class="menu-item">
                 <a href="/categories">
                     Categories
-                </a>
-            </li>
-            
-            <li class="menu-item">
-                <a href="/contact.html">
-                    Contact
                 </a>
             </li>
             
@@ -142,7 +130,7 @@
         <!--Title and Logo-->
         <header>
     <div class="logo">
-        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        <a href="/"><i class="logo-icon fa fa-dragon" aria-hidden="true"></i></a>
         
     </div>
 </header>
@@ -195,7 +183,7 @@
 </li>
 <li><p>通过<code>edit()</code>做<code>tcache poisoning</code>, 劫持到<code>tcache_perthread_struct</code>. 需注意tcache_entry-&gt;next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. <code>edit()</code>次数用尽.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">edit(p64(mask ^ (heap_base + 0x10))+p64(0))</span><br></pre></td></tr></table></figure></li>
-<li><p><code>tcache_perthread_struct</code>大小为0x290, 我们把count[0x290]覆盖成大于等于7,就能将其释放到<code>unsortedbin</code>中.</p>
+<li><p><code>tcache_perthread_struct</code>大小为0x290, 我们把<code>counts[0x290]</code>覆盖成大于等于7,就能将其释放到<code>unsortedbin</code>中.</p>
 </li>
 <li><p>非常重要的一点: 记得我们在<code>tcache_perthread_struct</code>操作, 该chunk进入<code>unsortedbin</code>中会对<code>counts[]</code>进行污染,我们要将其清零. 同时,我们也应当为之后的利用<code>entries[]</code>的操作做准备,设置对应的<code>counts[]</code>值使其大于零.</p>
 </li>
