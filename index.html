@@ -130,7 +130,7 @@
         <!--Title and Logo-->
         <header>
     <div class="logo">
-        <a href="/"><i class="logo-icon fa fa-chess-rook" aria-hidden="true"></i></a>
+        <a href="/"><i class="logo-icon fa fa-jedi" aria-hidden="true"></i></a>
         
             <h1 id="main-title" class="title">Trident91's Blog</h1>
         
@@ -160,6 +160,118 @@
     
         <div class="content">
             <h2 id="欢迎来到我的小站"><a href="#欢迎来到我的小站" class="headerlink" title="欢迎来到我的小站"></a>欢迎来到我的小站</h2><p><del>二进制,狗都不学</del><br>本站关键词: CTF, PWN, 二进制安全……<br>当然主要还是记录本菜鸡被各种题目折磨的过程</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2021/05/14/House%20of%20Einherjar/">
+                einherjar
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2021-05-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Notes/">Notes</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="House-Of-Einherjar"><a href="#House-Of-Einherjar" class="headerlink" title="House Of Einherjar"></a>House Of Einherjar</h2><p>通过off-by-one/off-by-null, 申请任意地址</p>
+<ul>
+<li>利用结果: 使malloc返回任意地址</li>
+<li>要求: 堆泄露, off-by-null</li>
+<li>适用版本: 本篇记录的是改进版的House of Einherjar, 适用于包括2.31的带tcache版本.</li>
+</ul>
+<h4 id="利用方式"><a href="#利用方式" class="headerlink" title="利用方式"></a>利用方式</h4><p>总结一下, 会用到三个chunk: a,b,c</p>
+<ul>
+<li>a: 在其中构造fake chunk</li>
+<li>b: victim, 在其中off-by-null溢出到c, 并修改c的prev_size,与fake chunk重叠</li>
+<li>c: 被溢出修改prev_size的chunk</li>
+</ul>
+<p>一些细节如下:</p>
+<ul>
+<li>c的chunk大小应为0x100的倍数,这样off-by-null时就不会出问题</li>
+<li>fake_chunk -&gt; size 要等于 c-&gt; prev_size</li>
+<li>fake_chunk -&gt; fd, fake_chunk -&gt; bk 都指向fake_chunk, 以绕过unlink时的检查,也因此需要堆泄露</li>
+</ul>
+<p>流程:</p>
+<ol>
+<li>申请a,b,c</li>
+<li>在B中改写<code>C-&gt;prev_size</code>, 同时通过OFF-BY-NULL写<code>C-&gt;prev_inuse</code>为0</li>
+<li>填满 <code>tcache[c -&gt; size]</code>; 当然,情况允许的话,我们也可以直接申请大于tcache范围的chunk.</li>
+<li>释放c, 触发fake_chunk与c的合并</li>
+<li>申请fake_chunk+c的chunk, 叫他d</li>
+<li>桥豆麻袋! 此处需要先<code>malloc</code>并<code>free</code>一个b大小的chunk做padding.</li>
+<li>释放b</li>
+<li>开始攻击(tcache poisoning): 利用d修改 b-&gt;fd 为target</li>
+<li>申请两次,第二次申请获取到target!</li>
+</ol>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a target="_blank" rel="noopener" href="https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c">https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2021/05/14/House%20of%20Botcake/">
+                botcake
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2021-05-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Notes/">Notes</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="House-of-Botcake"><a href="#House-of-Botcake" class="headerlink" title="House of Botcake"></a>House of Botcake</h2><p>2.27中也可使用, 绕过tcache double free的检测.</p>
+<ul>
+<li>利用结果: 使malloc返回任意地址</li>
+<li>要求: 存在double free</li>
+</ul>
+<h4 id="利用方式"><a href="#利用方式" class="headerlink" title="利用方式"></a>利用方式</h4><p>使用0x100 (chunk size: 0x110)来演示:</p>
+<ol>
+<li>listTrash = malloc(0x100) * 7</li>
+<li>prev = malloc(0x100)</li>
+<li>a = malloc(0x100) # the victim</li>
+<li>malloc (0x10) #padding</li>
+<li>free(listTrash[i]) for i in [0,7) # fill up tcachebin</li>
+<li>free(a)  # free a; a in unsortedbin</li>
+<li>free(prev) # prev consolidate with a</li>
+<li>malloc(0x100); # get one chunk from tcache</li>
+<li>free(a) # free victim again, now it is also in tcachebin</li>
+<li>malloc(0x120) # 利用重叠申请到prev+victim合并产生的chunk</li>
+<li>改写victim的fd</li>
+<li>malloc(0x100) # BOOM!</li>
+</ol>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c">https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c</a></p>
 
         </div>
     
@@ -391,11 +503,15 @@
             </li>
             
             <li>
-                <a class="footer-post" href="/2021/04/08/VNCTF2021/">VNCTF2021 Pwn [持续更新中]</a>
+                <a class="footer-post" href="/2021/05/14/House%20of%20Einherjar/">einherjar</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2021/03/04/heap_writeup/">简单堆题write-up</a>
+                <a class="footer-post" href="/2021/05/14/House%20of%20Botcake/">botcake</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2021/04/08/VNCTF2021/">VNCTF2021 Pwn [持续更新中]</a>
             </li>
             
         </ul>
@@ -410,6 +526,10 @@
         
         <li>
             <a class="footer-post" href="/categories/Write-Up/">Write-Up</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Notes/">Notes</a>
         </li>
         
     </ul>
