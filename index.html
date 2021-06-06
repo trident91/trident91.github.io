@@ -78,7 +78,35 @@
 
 
 <body>
-
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/frame/live2dcubismcore.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/live2dcubismframework.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/live2dcubismpixi.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/l2d.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/main.js"></script>
+    <div class="Canvas"  id="L2dCanvas"></div>
+    <div>
+        <script>
+            var config = {
+                width: 800,
+                height: 600,
+                right: '-300px',
+                bottom: '-100px',
+                basePath: 'https://cdn.jsdelivr.net/gh/alg-wiki/AzurLaneL2DViewer@gh-pages/assets',
+                role: 'xuefeng_3',
+                background: '',
+                opacity: 1,
+                mobile: false
+            }
+            var v = new Viewer(config); 
+            window.onload = function(){
+                let dom = document.querySelector('.Canvas')
+                console.log(dom)
+                dom.style["pointer-events"]= 'none'
+            }
+        </script>
+    </div>
 <div class="bg-gradient"></div>
 <div class="bg-pattern"></div>
 
@@ -659,36 +687,6 @@
 
 <!-- Disqus Comments -->
 
-
-<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/frame/live2dcubismcore.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.6.1/pixi.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/live2dcubismframework.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/live2dcubismpixi.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/l2d.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/litstronger/live2d-moc3@master/js/main.js"></script>
-<div class="Canvas"  id="L2dCanvas"></div>
-<div>
-    <script>
-        var config = {
-            width: 800,
-            height: 600,
-            right: '-300px',
-            bottom: '-100px',
-            basePath: 'https://cdn.jsdelivr.net/gh/alg-wiki/AzurLaneL2DViewer@gh-pages/assets',
-            role: 'xuefeng_3',
-            background: '',
-            opacity: 1,
-            mobile: false
-        }
-        var v = new Viewer(config); 
-        window.onload = function(){
-            let dom = document.querySelector('.Canvas')
-            console.log(dom)
-            dom.style["pointer-events"]= 'none'
-        }
-    </script>
-</div>
 </body>
 
 </html>
