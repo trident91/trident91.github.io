@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Notes on N0k&#39;s Den</title>
+    <link>https://trident91.github.io/categories/notes/</link>
+    <description>Recent content in Notes on N0k&#39;s Den</description>
+    <generator>Hugo -- 0.147.9</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 14 May 2021 10:04:20 +0000</lastBuildDate>
+    <atom:link href="https://trident91.github.io/categories/notes/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>House of Einherjar</title>
+      <link>https://trident91.github.io/posts/house-of-einherjar/</link>
+      <pubDate>Fri, 14 May 2021 10:04:20 +0000</pubDate>
+      <guid>https://trident91.github.io/posts/house-of-einherjar/</guid>
+      <description>&lt;h2 id=&#34;house-of-einherjar&#34;&gt;House Of Einherjar&lt;/h2&gt;
+&lt;p&gt;通过off-by-one/off-by-null, 申请任意地址&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;利用结果: 使malloc返回任意地址&lt;/li&gt;
+&lt;li&gt;要求: 堆泄露, off-by-null&lt;/li&gt;
+&lt;li&gt;适用版本: 本篇记录的是改进版的House of Einherjar, 适用于包括2.31的带tcache版本.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;利用方式&#34;&gt;利用方式&lt;/h4&gt;
+&lt;p&gt;总结一下, 会用到三个chunk: a,b,c&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a: 在其中构造fake chunk&lt;/li&gt;
+&lt;li&gt;b: victim, 在其中off-by-null溢出到c, 并修改c的prev_size,与fake chunk重叠&lt;/li&gt;
+&lt;li&gt;c: 被溢出修改prev_size的chunk&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;一些细节如下:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;c的chunk大小应为0x100的倍数,这样off-by-null时就不会出问题&lt;/li&gt;
+&lt;li&gt;fake_chunk -&amp;gt; size 要等于 c-&amp;gt; prev_size&lt;/li&gt;
+&lt;li&gt;fake_chunk -&amp;gt; fd, fake_chunk -&amp;gt; bk 都指向fake_chunk, 以绕过unlink时的检查,也因此需要堆泄露&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;流程:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;申请a,b,c&lt;/li&gt;
+&lt;li&gt;在B中改写&lt;code&gt;C-&amp;gt;prev_size&lt;/code&gt;, 同时通过OFF-BY-NULL写&lt;code&gt;C-&amp;gt;prev_inuse&lt;/code&gt;为0&lt;/li&gt;
+&lt;li&gt;填满 &lt;code&gt;tcache[c -&amp;gt; size]&lt;/code&gt;; 当然,情况允许的话,我们也可以直接申请大于tcache范围的chunk.&lt;/li&gt;
+&lt;li&gt;释放c, 触发fake_chunk与c的合并&lt;/li&gt;
+&lt;li&gt;申请fake_chunk+c的chunk, 叫他d&lt;/li&gt;
+&lt;li&gt;桥豆麻袋! 此处需要先&lt;code&gt;malloc&lt;/code&gt;并&lt;code&gt;free&lt;/code&gt;一个b大小的chunk做padding.&lt;/li&gt;
+&lt;li&gt;释放b&lt;/li&gt;
+&lt;li&gt;开始攻击(tcache poisoning): 利用d修改 b-&amp;gt;fd 为target&lt;/li&gt;
+&lt;li&gt;申请两次,第二次申请获取到target!&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&#34;参考&#34;&gt;参考&lt;/h4&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c&#34;&gt;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>House of Botcake</title>
+      <link>https://trident91.github.io/posts/house-of-botcake/</link>
+      <pubDate>Fri, 14 May 2021 10:01:07 +0000</pubDate>
+      <guid>https://trident91.github.io/posts/house-of-botcake/</guid>
+      <description>&lt;h2 id=&#34;house-of-botcake&#34;&gt;House of Botcake&lt;/h2&gt;
+&lt;p&gt;2.27中也可使用, 绕过tcache double free的检测.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;利用结果: 使malloc返回任意地址&lt;/li&gt;
+&lt;li&gt;要求: 存在double free&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;利用方式&#34;&gt;利用方式&lt;/h4&gt;
+&lt;p&gt;使用0x100 (chunk size: 0x110)来演示:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;listTrash = malloc(0x100) * 7&lt;/li&gt;
+&lt;li&gt;prev = malloc(0x100)&lt;/li&gt;
+&lt;li&gt;a = malloc(0x100) # the victim&lt;/li&gt;
+&lt;li&gt;malloc (0x10) #padding&lt;/li&gt;
+&lt;li&gt;free(listTrash[i]) for i in [0,7) # fill up tcachebin&lt;/li&gt;
+&lt;li&gt;free(a)  # free a; a in unsortedbin&lt;/li&gt;
+&lt;li&gt;free(prev) # prev consolidate with a&lt;/li&gt;
+&lt;li&gt;malloc(0x100); # get one chunk from tcache&lt;/li&gt;
+&lt;li&gt;free(a) # free victim again, now it is also in tcachebin&lt;/li&gt;
+&lt;li&gt;malloc(0x120) # 利用重叠申请到prev+victim合并产生的chunk&lt;/li&gt;
+&lt;li&gt;改写victim的fd&lt;/li&gt;
+&lt;li&gt;malloc(0x100) # BOOM!&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c&#34;&gt;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

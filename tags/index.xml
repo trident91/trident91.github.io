@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Tags on N0k&#39;s Den</title>
+    <link>https://trident91.github.io/tags/</link>
+    <description>Recent content in Tags on N0k&#39;s Den</description>
+    <generator>Hugo -- 0.147.9</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 22 Jun 2025 16:48:49 +0000</lastBuildDate>
+    <atom:link href="https://trident91.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Misc</title>
+      <link>https://trident91.github.io/tags/misc/</link>
+      <pubDate>Sun, 22 Jun 2025 16:48:49 +0000</pubDate>
+      <guid>https://trident91.github.io/tags/misc/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Tool</title>
+      <link>https://trident91.github.io/tags/tool/</link>
+      <pubDate>Sun, 22 Jun 2025 16:48:49 +0000</pubDate>
+      <guid>https://trident91.github.io/tags/tool/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Ctf</title>
+      <link>https://trident91.github.io/tags/ctf/</link>
+      <pubDate>Thu, 20 May 2021 10:05:06 +0000</pubDate>
+      <guid>https://trident91.github.io/tags/ctf/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Pwn</title>
+      <link>https://trident91.github.io/tags/pwn/</link>
+      <pubDate>Thu, 20 May 2021 10:05:06 +0000</pubDate>
+      <guid>https://trident91.github.io/tags/pwn/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Heap</title>
+      <link>https://trident91.github.io/tags/heap/</link>
+      <pubDate>Fri, 14 May 2021 10:04:20 +0000</pubDate>
+      <guid>https://trident91.github.io/tags/heap/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Write-Up</title>
+      <link>https://trident91.github.io/tags/write-up/</link>
+      <pubDate>Thu, 08 Apr 2021 16:48:49 +0000</pubDate>
+      <guid>https://trident91.github.io/tags/write-up/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

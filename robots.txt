@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://trident91.github.io/sitemap.xml
