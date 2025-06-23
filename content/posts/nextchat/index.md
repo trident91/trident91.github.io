@@ -30,7 +30,7 @@ Before the deployment, several key enviroment variables are set:
 
 ## Sync it up
 
-On daily basis, I have operate on multiple PC/laptops, cross device syncing is a must. NextChat has built-in support to sync data with [UpStash](https://upstash.com/), which is nice because UpStash provides free database service. (well, free until certain extent of usage but it is generally enough for personal use of NextChat). 
+On daily basis, I have to operate on multiple PC/laptops, cross device sync-up is hence a must. NextChat has built-in support to sync up data with [UpStash](https://upstash.com/), which is nice because UpStash provides free database service. (well, free until certain extent of usage but it is generally enough for personal use of NextChat). 
 
 Configuration: simply enters the endpoint and token of the UpStash database in setting page of NextChat.
 ![alt text](image-2.png)
@@ -38,11 +38,11 @@ Configuration: simply enters the endpoint and token of the UpStash database in s
 
 ### QOL improvement: auto-sync
 
-As a said, as a heavy multi-device user, I found that using nextchat's native sync-up function is kind of painful. Everytime I have to actively click a `Sync` button that's hidden in a menu. So I decided to customize my NextChat to include an auto-sync function.
+As I said, as a heavy multi-device user, I found that using nextchat's native sync-up function is kinda painful. Everytime I have to actively click a `Sync` button that's hidden in a menu. So I decided to customize my NextChat to include an auto-sync function.
 
 ![alt text](image-3.png)
 
-Well actually let's look for any existing efforts so that I won't reinvent the wheels. And it took me 5 seconds to find one! Someone who actually knows how to develop TypeScript webapp has submitted a PR to include autosyncing, but the PR is never merged (as of today):
+Well before getting into dirty works, let's actually look for any existing efforts so that I won't reinvent the wheels. And it took me 5 seconds to find one! Someone who actually knows how to develop TypeScript webapp has submitted a PR to include autosyncing, but the PR is never merged (as of today):
 
 https://github.com/ChatGPTNextWeb/NextChat/pull/5700
 
