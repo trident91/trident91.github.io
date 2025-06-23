@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Abouts on N0k&#39;s Den</title>
+    <link>http://localhost:1313/about/</link>
+    <description>Recent content in Abouts on N0k&#39;s Den</description>
+    <generator>Hugo -- 0.147.8</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 22 Jun 2025 10:04:20 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/about/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About Me</title>
+      <link>http://localhost:1313/about/about/</link>
+      <pubDate>Sun, 22 Jun 2025 10:04:20 +0000</pubDate>
+      <guid>http://localhost:1313/about/about/</guid>
+      <description>&lt;p&gt;N0k aka Trident91. My IRL photo:
+&lt;img alt=&#34;alt text&#34; loading=&#34;lazy&#34; src=&#34;346e63ca45c7beedb3c79524a2e765e2.jpg&#34;&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

