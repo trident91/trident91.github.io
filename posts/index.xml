@@ -27,7 +27,7 @@
 &lt;img alt=&#34;alt text&#34; loading=&#34;lazy&#34; src=&#34;https://trident91.github.io/posts/nextchat/image-1.png&#34;&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id=&#34;sync-it-up&#34;&gt;Sync it up&lt;/h2&gt;
-&lt;p&gt;On daily basis, I have operate on multiple PC/laptops, cross device syncing is a must. NextChat has built-in support to sync data with &lt;a href=&#34;https://upstash.com/&#34;&gt;UpStash&lt;/a&gt;, which is nice because UpStash provides free database service. (well, free until certain extent of usage but it is generally enough for personal use of NextChat).&lt;/p&gt;</description>
+&lt;p&gt;On daily basis, I have to operate on multiple PC/laptops, cross device sync-up is hence a must. NextChat has built-in support to sync up data with &lt;a href=&#34;https://upstash.com/&#34;&gt;UpStash&lt;/a&gt;, which is nice because UpStash provides free database service. (well, free until certain extent of usage but it is generally enough for personal use of NextChat).&lt;/p&gt;</description>
     </item>
     <item>
       <title>Pwn Snippet</title>
