@@ -69,7 +69,7 @@ After pushing the changes and redeploy the application in vercel, NextChat will 
 ![alt text](image-4.png)
 
 
-## QOL improvement PART II: auto-sync everytime
+### QOL improvement PART II: auto-sync everytime
 
 Obviously having auto-sync only at the start-up of the web app is not gonna be enough. I decided to add a feature that allows auto-sync on every response from AI.
 
@@ -146,7 +146,7 @@ Next, we need to update `app/components/chat.tsx` to dispatch the event to whene
 
 At this step, we should be all set. Everytime there is an AI response, the hook will be triggered so that the auto-sync will happen. 
 
-### Optional Autosync
+#### Optional Autosync
 
 Despite the fact that I believe for at least 90% of the time I will want to have this feature in action, it is still better practice to leave it as an option. To achieve this, we have to 
  - add a simple logic check in the hook, and 
@@ -234,7 +234,7 @@ Re-deployed NextChat, we now have the options to enable auto sync on AI reponses
 
 ![alt text](image-6.png)
 
-## AutoSync patch
+### AutoSync patch
 
 The modified files containing features mentioned above can be found at https://github.com/trident91/NextChat-AutoSync-Patch/tree/main
 
