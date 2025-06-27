@@ -69,7 +69,7 @@ After pushing the changes and redeploy the application in vercel, NextChat will 
 ![alt text](image-4.png)
 
 
-### QOL improvement PART II: auto-sync everytime
+### QOL improvement PART II: auto-sync on every response
 
 Obviously having auto-sync only at the start-up of the web app is not gonna be enough. I decided to add a feature that allows auto-sync on every response from AI.
 
